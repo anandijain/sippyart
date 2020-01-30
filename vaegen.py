@@ -65,6 +65,8 @@ FILE_NAMES = [
 LOAD_MODEL = False
 # RESAMPLE_RATE = 44100 # TODO
 
+
+
 def train_epoch(d, epoch: int, save=False):
 
     model = d['m']
@@ -170,7 +172,7 @@ def train(fn, epochs=EPOCHS, start_saving_at=START_SAVING_AT, save=True, save_mo
     print(song)
 
     if save:
-        save_wavfn = f'gen_{short_fn}_n_{WINDOW_SECONDS}_mid_{MIDDLE}_bot_{BOTTLENECK}.wav'
+        save_wavfn = f'vae_{short_fn}_n_{WINDOW_SECONDS}_mid_{MIDDLE}_bot_{BOTTLENECK}.wav'
 
         torchaudio.save(d['path'] + save_wavfn, song, d['sr'])
     if save_model:

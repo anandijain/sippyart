@@ -1,3 +1,5 @@
+import numpy as np
+
 import torchaudio
 import torch
 from torch.nn import functional as F
@@ -12,17 +14,18 @@ output of VAE encoding is a single element of LSTM sequence
 
 
 class WavLSTM(Dataset):
-    def __init__(self, fn='data/5_8_18_2.wav'):
-        self.w, self.sr = torchaudio.load(fn)
-        self.length = len(self.w[0])
+    def __init__(self, wave, sr, win_len):
+        self.w, self.sr = wave, sr
+        self.windows = data_windows(wave, win_len)
+        self.length = len(self.windows) 
 
         
     def __len__(self):
         return self.length - 1
 
     def __getitem__(self, idx):
-        x = torch.tensor([self.w[0][idx], self.w[1][idx]])
-        y = torch.tensor([self.w[0][idx+1], self.w[1][idx+1]])
+        x = self.windows[idx][0]
+        y = self.windows[idx+1][0]
         return x, y
 
 
@@ -44,42 +47,34 @@ class WaveSet(Dataset):
         return self.length
 
     def __getitem__(self, idx):
-        l = self.w[0][idx*self.window_len:(idx + 1)*self.window_len]
-        r = self.w[1][idx*self.window_len:(idx + 1)*self.window_len]
-        x = torch.cat([l, r])
+        x = wave_cat(x, idx, self.window_len)
         # print(x)
         if np.nan in x:
             print('oh no')
         return x.view(1, -1)
 
 
-# class Files(Dataset):
-#     def __init__(self, dir):
-#         self.fns = [dir + f for f in FILE_NAMES]
-#         self.length = len(self.fns)
-
-#     def __len__(self):
-#         return self.length
-
-#     def __getitem__(self, idx):
-#         return self.fns[idx]
+def wave_cat(w:torch.tensor, idx:int, n:int):
+    l = w[0][idx*n:(idx + 1)*n]
+    r = w[1][idx*n:(idx + 1)*n]
+    x = torch.cat([l, r])
+    return x
 
 
-# def sgram(wave):
-#     return torchaudio.transforms.Spectrogram()(wave)
+
+def data_windows(w:torch.tensor, n: int = 1000):
+    # assuming stereo channels, w.shape == (2, n)
+    windows = []
+    length = len(w[0]) // n
+    for i in range(length):
+        l = w[0][i*n:(i+1)*n].view(1, -1)
+        r = w[1][i*n:(i+1)*n].view(1, -1)
+        elt = torch.cat([l, r])
+        windows.append(elt)
+    return windows
 
 
-# def wavey(fn=FILE_NAMES[0]):
-#     return torchaudio.load(DIRECTORY + fn)
-
-
-# def data_windows(n: int = 100000):
-#     m = len(FILE_NAMES)
-#     d = {}
-#     for i, fn in enumerate(FILE_NAMES):
-#         t = wavey(fn)
-#         window = t[0][i*n:(i+1)*n]
-#         if n > len(window):
-#             d[fn] = i
-#             break
-#     return d
+if __name__ == "__main__":
+    
+    wave, sr = torchaudio.load('data/8_14_18.wav')
+    windows = data_windows(wave, sr // 4)

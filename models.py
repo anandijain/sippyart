@@ -41,13 +41,15 @@ class LSTM(nn.Module):
         super(LSTM, self).__init__()
 
         self.lstm = nn.LSTM(in_dim, hidden_dim, num_layers)
+        self.l2 = nn.Linear(hidden_dim, hidden_dim)
         self.x = torch.randn(1, 1, 2)
         # self.h = torch.randn(num_layers, 1, hidden_dim)
         self.c = torch.randn(num_layers, 1, hidden_dim)
 
     def forward(self, x, h):
         out, (hn, cn) = self.lstm(x, h)
-        return out, (hn, cn)
+        y_hat = self.l2(out)
+        return out# , (hn, cn)
 
 
 class Generator(nn.Module):
