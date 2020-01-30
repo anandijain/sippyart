@@ -30,15 +30,17 @@ class WavLSTM(Dataset):
 
 
 class WaveSet(Dataset):
-    def __init__(self, fn: str, seconds: int):  # , resample_to=None):
+    def __init__(self, fn: str, seconds: int=None, win_len:int=None):  # , resample_to=None):
         """
         seconds is int that is multiplied by sample rate 
         """
         wave = torchaudio.load(filepath=fn)
         self.w = wave[0]
         self.sample_rate = wave[1]
-
-        window_len = int(seconds * self.sample_rate)
+        if seconds is None:
+            window_len = win_len
+        else:
+            window_len = int(seconds * self.sample_rate)
 
         self.length = (len(self.w[0]) // window_len) - 2
         self.window_len = window_len
@@ -47,7 +49,7 @@ class WaveSet(Dataset):
         return self.length
 
     def __getitem__(self, idx):
-        x = wave_cat(x, idx, self.window_len)
+        x = wave_cat(self.w, idx, self.window_len)
         # print(x)
         if np.nan in x:
             print('oh no')

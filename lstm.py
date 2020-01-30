@@ -16,19 +16,17 @@ import loaders
 import models
 
 
-BPM = 110
-BEATS_PER_SECOND = BPM // 60 # b/sec
 N_LAYERS = 4
 
 FN = '3seconds' 
 to_read = f'data/' + FN + '.wav'
 wave, SAMPLE_RATE = torchaudio.load(to_read)
 
-WINDOW_SIZE = 440 * 4
+WINDOW_SIZE = 1660
 HIDDEN_SIZE = WINDOW_SIZE
 print(WINDOW_SIZE)
-BATCH_SIZE = 32
-EPOCHS = 100
+BATCH_SIZE = 1
+EPOCHS = 25
 LR = 1e-1
 LOG_FN = f'LSTM_{FN}_WIN_LEN_{WINDOW_SIZE}_N_{N_LAYERS}_BATCH_{BATCH_SIZE}_LR_{LR}'
 SAVE_FN = f'samples/{LOG_FN}.wav'
@@ -55,8 +53,8 @@ if __name__ == "__main__":
 
     optimizer.zero_grad()
 
-    hn = torch.randn(N_LAYERS, 1, HIDDEN_SIZE).to(device)
-    cn = torch.randn(N_LAYERS, 1, HIDDEN_SIZE).to(device)
+    hn = torch.randn(N_LAYERS, 1, WINDOW_SIZE).to(device)
+    cn = torch.randn(N_LAYERS, 1, WINDOW_SIZE).to(device)
     all_outs = []
     for epoch in range(EPOCHS):
 
@@ -68,10 +66,7 @@ if __name__ == "__main__":
                 print('broke')
                 continue
             y = y.to(device).view(BATCH_SIZE, 1, -1)
-            try:
-                out, (hn, cn) = model(x)
-            except RuntimeError:
-                continue
+            out, (hn, cn) = model(x)
             loss = loss_fn(out, y)
             writer.add_scalar('train_loss', loss.item(), i+(len(dataset) * epoch))
             loss.backward()
