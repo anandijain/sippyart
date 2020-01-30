@@ -15,8 +15,8 @@ from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 
 import utils
-import vae
-
+import models
+import loaders
 
 # larger window sizes wont usually work on my GPU because of the RAM
 # device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -117,14 +117,14 @@ def prep(fn: str, load_model=LOAD_MODEL):
     except FileExistsError:
         print(f'warning: going to overwrite {path}')
 
-    dataset = utils.WaveSet(fn, WINDOW_SECONDS)
+    dataset = loaders.WaveSet(fn, WINDOW_SECONDS)
     print(f'len(dataset): {len(dataset)} (num of windows)')
     window_len = dataset.window_len
     sample_rate = dataset.sample_rate
 
     train_loader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True)
 
-    model = vae.VAE(dim=window_len*2, bottleneck=BOTTLENECK,
+    model = models.VAE(dim=window_len*2, bottleneck=BOTTLENECK,
                     middle=MIDDLE).to(device)
     if load_model:
         try:
