@@ -45,7 +45,7 @@ if __name__ == "__main__":
 
     loader = DataLoader(dataset, batch_size=BATCH_SIZE)
     loss_fn = nn.MSELoss()
-    writer = SummaryWriter(f'runs/{time.asctime()}')
+    writer = SummaryWriter(f'runs/{LOG_FN}{time.asctime()}')
 
     # model = nn.LSTM(BATCH_SIZE*2, BATCH_SIZE*2, N_LAYERS).to(device)
     model = models.LSTM(WINDOW_SIZE, WINDOW_SIZE, N_LAYERS).to(device)
@@ -59,15 +59,17 @@ if __name__ == "__main__":
 
     all_outs = []
     for i, (x, y) in enumerate(loader):
-        x = x.to(device)
-        y = y.to(device)
-        out = model(x.view(BATCH_SIZE, 1, -1), (h, c))
-        loss = loss_fn(out, y.view(BATCH_SIZE, 1, -1))
+        try:
+            x = x.to(device).view(BATCH_SIZE, 1, -1)
+        except RuntimeError:
+            break
+        y = y.to(device).view(BATCH_SIZE, 1, -1)
+        out = model(x, (h, c))
+        loss = loss_fn(out, y)
         writer.add_scalar('train_loss', loss.item(), i)
         loss.backward()
-        if i % (SAMPLE_RATE // 16) == 0:
-            all_outs.append(out.view(2, -1))
-            print(f'batch_id: {i} loss: {loss} % DONE: {(i * BATCH_SIZE) / len(dataset)}')
+        all_outs.append(out.view(2, -1))
+        print(f'batch_id: {i} loss: {loss} % DONE: {(i * BATCH_SIZE) / len(dataset)}')
         if i >= SAMPLE_RATE * 10:
             break
     big = torch.cat(all_outs)
