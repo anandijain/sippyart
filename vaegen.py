@@ -55,11 +55,12 @@ CONFIG_3 = {
 MODEL_FN = f'n_{WINDOW_SECONDS}_mid_{MIDDLE}_bot_{BOTTLENECK}.pth'
 
 FILE_NAMES = [
+    '/home/sippycups/Music/2018/81 - 2018 - 70 5 9 18.wav'
     # '/home/sippycups/audio/data/3seconds.wav'
     # '/home/sippycups/Music/2018/81 - 2018 - 119 8 5 18.wav'
-    '/home/sippycups/Music/2018/81 - 2018 - 92 6 13 18 2.wav',
-    '/home/sippycups/Music/2018/81 - 2018 - 09 2 18 18.wav',
-    '/home/sippycups/Music/2018/81 - 2018 - 46 4 26 18 v2.wav'
+    # '/home/sippycups/Music/2018/81 - 2018 - 92 6 13 18 2.wav',
+    # '/home/sippycups/Music/2018/81 - 2018 - 09 2 18 18.wav',
+    # '/home/sippycups/Music/2018/81 - 2018 - 46 4 26 18 v2.wav'
     # '/home/sippycups/Music/misc/81 - misc - 23 12 27 17 v2.wav'
     # '/home/sippycups/Music/misc/81 - misc - 26 12 29 17 hollow pt hiking v2.wav'
     # '/home/sippycups/Music/2018/81 - 2018 - 41 self love soup loop.wav',
