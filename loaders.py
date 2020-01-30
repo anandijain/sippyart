@@ -25,7 +25,7 @@ class WavLSTM(Dataset):
 
     def __getitem__(self, idx):
         x = self.windows[idx][0]
-        y = self.windows[idx+1][0]
+        y = self.windows[idx][0]
         return x, y
 
 

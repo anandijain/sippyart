@@ -37,19 +37,25 @@ class VAE(nn.Module):
 
 
 class LSTM(nn.Module):
-    def __init__(self, in_dim, hidden_dim, num_layers):
+    def __init__(self, in_dim, hidden_dim, num_layers, device):
         super(LSTM, self).__init__()
-
+        self.device = device
         self.lstm = nn.LSTM(in_dim, hidden_dim, num_layers)
         self.l2 = nn.Linear(hidden_dim, hidden_dim)
         self.x = torch.randn(1, 1, 2)
-        # self.h = torch.randn(num_layers, 1, hidden_dim)
-        self.c = torch.randn(num_layers, 1, hidden_dim)
+        self.in_dim = in_dim
+        self.hid_dim = hidden_dim
+        self.num_layers = num_layers
+        self.reset()
 
-    def forward(self, x, h):
-        out, (hn, cn) = self.lstm(x, h)
+    def reset(self):
+        self.h = torch.zeros(self.num_layers, 1, self.hid_dim).to(self.device)
+        self.c = torch.zeros(self.num_layers, 1, self.hid_dim).to(self.device)
+
+    def forward(self, x):
+        out, (self.hn, self.cn) = self.lstm(x, (self.h, self.c))
         y_hat = self.l2(out)
-        return out# , (hn, cn)
+        return out, (self.hn, self.cn)
 
 
 class Generator(nn.Module):
