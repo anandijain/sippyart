@@ -15,15 +15,15 @@ import utils
 import loaders
 import models
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+dataset = loaders.WavLSTM()
 
 
 BATCH_SIZE = 64
 N_LAYERS = 4
-HIDDEN_SIZE = 64
+HIDDEN_SIZE = BATCH_SIZE
 LR = 1e-2
+SAMPLE_RATE = dataset.sr
 
-
-dataset = loaders.WavLSTM()
 x, y = dataset[0]
 loader = DataLoader(dataset, batch_size=BATCH_SIZE)
 loss_fn = nn.MSELoss()
@@ -41,14 +41,14 @@ all_outs = []
 for i, (x, y) in enumerate(loader):
     x = x.to(device)
     y = y.to(device)
-    print(f'x{x} y{y}')
-    out, (h2, c2) = model(x.view(1, 1, -1), (h, c))
+    out, (h, c) = model(x.view(1, 1, -1), (h, c))
     loss = loss_fn(out, y.view(1, 1, -1))
+    writer.add_scalar('train_loss', loss.item(), i)
     loss.backward()
-    if i % 500 == 0:
+    if i % (SAMPLE_RATE // 64) == 0:
         all_outs.append(out.view(2, -1))
         print(f'{i}: {loss}')
-    if i >= 44100 * 50:
+    if i >= SAMPLE_RATE * 10:
         break
 
 big = torch.cat(all_outs, dim=1)
