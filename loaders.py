@@ -6,6 +6,7 @@ import pandas as pd
 from skimage import io, transform
 import matplotlib.pyplot as plt
 import torchaudio
+import torchvision
 import torch
 from torch.nn import functional as F
 from torch.utils.data import Dataset, DataLoader
@@ -79,6 +80,24 @@ class Images(Dataset):
         image = np.array(Image.open(fn), dtype=np.uint8)
         sample = torch.from_numpy(image)
         return sample
+
+
+class Videoset(Dataset):
+
+    def __init__(self, fn):
+        """
+
+        """
+        frames, audio, info = torchvision.io.read_video(fn, pts_unit='sec')
+        self.frames = frames
+        self.length = len(self.frames)
+
+    def __len__(self):
+        return self.length
+
+    def __getitem__(self, idx):
+        image = self.frames[idx]
+        return image
 
 
 def wave_cat(w:torch.tensor, idx:int, n:int, dim=0):
