@@ -39,7 +39,12 @@ def full_fn_to_name(fn):
     return fn.split('/')[-1].split('.')[0].replace(' ', '_')
 
 
-def loss_function(recon_x, x, mu, logvar):
-    BCE = F.binary_cross_entropy(recon_x, x, reduction='sum')
+def kl_loss(recon_x, x, mu, logvar):
+    try:
+        BCE = F.binary_cross_entropy(recon_x, x, reduction='sum')
+    except RuntimeError:
+        print(f'recon: {np.unique(recon_x.cpu().detach().numpy())}' )
+        print(f'x: {np.unique(x.cpu().detach().numpy())}' )
+        
     KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
     return BCE + KLD

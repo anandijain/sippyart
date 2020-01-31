@@ -30,8 +30,8 @@ BATCH_SIZE = 64
 WINDOW_SECONDS = 1.5  # n
 MIDDLE = 300  # 11025 # 22050 # 44100
 BOTTLENECK = 200
-EPOCHS = 50
-START_SAVING_AT = 0
+EPOCHS = 150
+START_SAVING_AT = 100
 SAVE_FREQ = 1
 
 # works on gpu
@@ -52,10 +52,19 @@ CONFIG_3 = {
     'BOTTLENECK' : 100,
 }
 
-MODEL_FN = f'n_{WINDOW_SECONDS}_mid_{MIDDLE}_bot_{BOTTLENECK}.pth'
+MODEL_FN = f'models/n_{WINDOW_SECONDS}_mid_{MIDDLE}_bot_{BOTTLENECK}.pth'
 
 FILE_NAMES = [
-    '/home/sippycups/Music/2018/81 - 2018 - 70 5 9 18.wav'
+    # '/home/sippycups/Music/2018/81 - 2018 - 70 5 9 18.wav'
+    # '/home/sippycups/Music/81 - The Last Semester of Bus Music/81 - The Last Semester of Bus Music - 17 5 14 17.wav'.
+    # '/home/sippycups/Music/81 - The Last Semester of Bus Music/81 - The Last Semester of Bus Music - 16 5 9 17 advanced placement macroeconomics examination.wav'
+    # '/home/sippycups/Music/81 - The Last Semester of Bus Music/81 - The Last Semester of Bus Music - 15 lucent.wav'
+    # '/home/sippycups/Music/81 - The Last Semester of Bus Music/81 - The Last Semester of Bus Music - 09 4 8 17 -beaches-.wav'
+    # '/home/sippycups/Music/misc/81 - misc - 21 10 8 16.wav'
+    # '/home/sippycups/Music/misc/81 - misc - 18 9 13 17.wav'
+    # 'data/smoov.wav'
+    # 'missu.wav'
+    '/home/sippycups/Music/misc/81 - misc - 12 7 27 17 i was like 100- sure i had lost all of my creativity and was just a boring braindead person.wav'
     # '/home/sippycups/audio/data/3seconds.wav'
     # '/home/sippycups/Music/2018/81 - 2018 - 119 8 5 18.wav'
     # '/home/sippycups/Music/2018/81 - 2018 - 92 6 13 18 2.wav',
@@ -95,7 +104,7 @@ def train_epoch(d, epoch: int, save=False):
 
         recon_batch, mu, logvar = model(data)
 
-        loss = utils.loss_function(recon_batch, data, mu, logvar)
+        loss = utils.kl_loss(recon_batch, data, mu, logvar)
         loss.backward()
         idx = len(dataset) * epoch + batch_idx
 
@@ -127,8 +136,11 @@ def prep(fn: str, load_model=LOAD_MODEL):
 
     train_loader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True)
 
-    model = models.VAEConv(dim=window_len*2, bottleneck=BOTTLENECK,
+    model = models.VAEConv1d(dim=window_len*2, bottleneck=BOTTLENECK,
                     middle=MIDDLE).to(device)
+
+    # model = models.VAE(dim=window_len*2, bottleneck=BOTTLENECK,
+    #                 middle=MIDDLE).to(device)
     if load_model:
         try:
             model.load_state_dict(torch.load(MODEL_FN))

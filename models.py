@@ -36,9 +36,9 @@ class VAE(nn.Module):
         return self.decode(z), mu, logvar
 
 
-class VAEConv(nn.Module):
+class VAEConv1d(nn.Module):
     def __init__(self, dim=1660, middle=400, bottleneck=100):
-        super(VAEConv, self).__init__()
+        super(VAEConv1d, self).__init__()
         self.dim = dim
         self.conv1 = nn.Conv1d(1, 1, 3, stride=2)
         # self.conv2 = nn.Conv1d(1, 1, 3, stride=2)
@@ -51,6 +51,40 @@ class VAEConv(nn.Module):
     def encode(self, x):
         x = F.relu(self.conv1(x))
         # x = F.relu(self.conv2(x))
+        h1 = F.relu(self.fc1(x))
+        return self.fc21(h1), self.fc22(h1)
+
+    def reparameterize(self, mu, logvar):
+        std = torch.exp(0.5*logvar)
+        eps = torch.randn_like(std)
+        return mu + eps*std
+
+    def decode(self, z):
+        h3 = F.relu(self.fc3(z))
+        return torch.sigmoid(self.fc4(h3))
+
+    def forward(self, x):
+        mu, logvar = self.encode(x)
+        z = self.reparameterize(mu, logvar)
+        return self.decode(z), mu, logvar
+
+
+class VAEConv2d(nn.Module):
+    def __init__(self, dim=1660, middle=400, bottleneck=100):
+        super(VAEConv2d, self).__init__()
+        self.dim = dim
+        self.conv1 = nn.Conv2d(1, 1, 3, stride=2)
+        # self.conv2 = nn.Conv1d(1, 1, 3, stride=2)
+        self.fc1 = nn.Linear(dim//2 - 1, middle)
+        self.fc21 = nn.Linear(middle, bottleneck)
+        self.fc22 = nn.Linear(middle, bottleneck)
+        self.fc3 = nn.Linear(bottleneck, middle)
+        self.fc4 = nn.Linear(middle, dim)
+
+    def encode(self, x):
+        x = F.relu(self.conv1(x))
+        # x = F.relu(self.conv2(x))
+        x = x.flatten()
         h1 = F.relu(self.fc1(x))
         return self.fc21(h1), self.fc22(h1)
 

@@ -1,17 +1,22 @@
+from PIL import Image
+import os
+import glob
 import numpy as np
-
+import pandas as pd
+from skimage import io, transform
+import matplotlib.pyplot as plt
 import torchaudio
 import torch
 from torch.nn import functional as F
 from torch.utils.data import Dataset, DataLoader
-
+from torchvision import transforms, utils
+plt.ion()   # interactive mode
 """
 goal:
 train VAE to compress audio to latent space,
 output of VAE encoding is a single element of LSTM sequence
 
 """
-
 
 class WavLSTM(Dataset):
     def __init__(self, wave, sr, win_len):
@@ -21,7 +26,7 @@ class WavLSTM(Dataset):
 
         
     def __len__(self):
-        return self.length - 1
+        return self.length
 
     def __getitem__(self, idx):
         x = self.windows[idx][0]
@@ -56,10 +61,30 @@ class WaveSet(Dataset):
         return x.view(1, -1)
 
 
-def wave_cat(w:torch.tensor, idx:int, n:int):
+class Images(Dataset):
+
+    def __init__(self, root_dir): #, transform=None):
+        """
+
+        """
+        self.root_dir = root_dir
+        self.fns = glob.glob(self.root_dir + '/**.jpg')
+        self.length = len(self.fns)
+
+    def __len__(self):
+        return self.length
+
+    def __getitem__(self, idx):
+        fn = self.fns[idx]
+        image = np.array(Image.open(fn), dtype=np.uint8)
+        sample = torch.from_numpy(image)
+        return sample
+
+
+def wave_cat(w:torch.tensor, idx:int, n:int, dim=0):
     l = w[0][idx*n:(idx + 1)*n]
     r = w[1][idx*n:(idx + 1)*n]
-    x = torch.cat([l, r])
+    x = torch.cat([l, r], dim=dim)
     return x
 
 
@@ -74,6 +99,8 @@ def data_windows(w:torch.tensor, n: int = 1000):
         elt = torch.cat([l, r])
         windows.append(elt)
     return windows
+
+
 
 
 if __name__ == "__main__":

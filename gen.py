@@ -15,7 +15,7 @@ from scipy.io.wavfile import write
 import matplotlib.pyplot as plt
 
 import utils
-import gan
+import models 
 
 GEN_PATH = 'gen_smol.pth'
 DISC_PATH = 'disc_smol.pth'
