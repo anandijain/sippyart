@@ -1,0 +1,7 @@
+name = "SippyArt"
+uuid = "ca4a9277-354c-4978-9c0e-5b904668c6dd"
+authors = ["anandijain <anandj@uchicago.edu>"]
+version = "0.1.0"
+
+[deps]
+WAV = "8149f6b0-98f6-5db9-b78f-408fbbb8ef88"

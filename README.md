@@ -8,7 +8,7 @@ index:
     - vaegen.py: given a wav file, trains a vae to reproduce the song for given lengths
     - gan.py: (not working really) trying to generate raw audio signal
 
-## gen usage:
+## gen usage
 
 * first clone repo
 * move wav file into learning/audio/
@@ -23,10 +23,8 @@ vaegen.train([YOUR WAV FILE], epochs=5, save=True)
 
 ## [listen](https://anonstandardunitofmeasurement.bandcamp.com/album/vae)
 
-
-
-# todo
+## todo
 
 * other generative models
 * preprocessing network to determine bpm and scale window size as a factor of beats/measures.
-* given list of files, create a playlist where the same model trains on all files and creates one wav 
+* given list of files, create a playlist where the same model trains on all files and creates one wav

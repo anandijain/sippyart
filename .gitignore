@@ -9,6 +9,7 @@
 *.html
 *.pth
 *model.pth
+*.avi
 
 .vscode/
 .ipynb_checkpoints/

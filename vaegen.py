@@ -55,31 +55,6 @@ CONFIG_3 = {
 MODEL_FN = f'models/n_{WINDOW_SECONDS}_mid_{MIDDLE}_bot_{BOTTLENECK}.pth'
 
 FILE_NAMES = [
-    # '/home/sippycups/Music/2018/81 - 2018 - 70 5 9 18.wav'
-    # '/home/sippycups/Music/81 - The Last Semester of Bus Music/81 - The Last Semester of Bus Music - 17 5 14 17.wav'.
-    # '/home/sippycups/Music/81 - The Last Semester of Bus Music/81 - The Last Semester of Bus Music - 16 5 9 17 advanced placement macroeconomics examination.wav'
-    # '/home/sippycups/Music/81 - The Last Semester of Bus Music/81 - The Last Semester of Bus Music - 15 lucent.wav'
-    # '/home/sippycups/Music/81 - The Last Semester of Bus Music/81 - The Last Semester of Bus Music - 09 4 8 17 -beaches-.wav'
-    # '/home/sippycups/Music/misc/81 - misc - 21 10 8 16.wav'
-    # '/home/sippycups/Music/misc/81 - misc - 18 9 13 17.wav'
-    # 'data/smoov.wav'
-    # 'missu.wav'
-    '/home/sippycups/Music/misc/81 - misc - 12 7 27 17 i was like 100- sure i had lost all of my creativity and was just a boring braindead person.wav'
-    # '/home/sippycups/audio/data/3seconds.wav'
-    # '/home/sippycups/Music/2018/81 - 2018 - 119 8 5 18.wav'
-    # '/home/sippycups/Music/2018/81 - 2018 - 92 6 13 18 2.wav',
-    # '/home/sippycups/Music/2018/81 - 2018 - 09 2 18 18.wav',
-    # '/home/sippycups/Music/2018/81 - 2018 - 46 4 26 18 v2.wav'
-    # '/home/sippycups/Music/misc/81 - misc - 23 12 27 17 v2.wav'
-    # '/home/sippycups/Music/misc/81 - misc - 26 12 29 17 hollow pt hiking v2.wav'
-    # '/home/sippycups/Music/2018/81 - 2018 - 41 self love soup loop.wav',
-    # '/home/sippycups/Music/2018/81 - 2018 - 38 4 10 18.wav',
-    # '/home/sippycups/Music/2018/81 - 2018 - 37 4 7 18.wav',
-    # '/home/sippycups/Music/2018/81 - 2018 - 31 4 3 18 perhaps a light tune to brighten the mood.wav',
-    # '/home/sippycups/Music/2018/81 - 2018 - 15 3 18 18 pt 2 music vid syncup.wav',
-    # '/home/sippycups/Music/2018/81 - 2018 - 14 3 18 18 pt 1 music vid syncup.wav',
-    # '/home/sippycups/Music/2018/81 - 2018 - 12 3 16 18.wav',
-    # '/home/sippycups/Music/2019/81 - 9 21 19 2.wav'
 ]
 LOAD_MODEL = False
 # RESAMPLE_RATE = 44100 # TODO

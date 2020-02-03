@@ -88,7 +88,8 @@ class Videoset(Dataset):
         """
 
         """
-        frames, audio, info = torchvision.io.read_video(fn, pts_unit='sec')
+        frames, audio, info = torchvision.io.read_video(fn)
+        print(frames)
         self.frames = frames
         self.length = len(self.frames)
 
