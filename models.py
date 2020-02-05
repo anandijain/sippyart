@@ -134,15 +134,16 @@ class Generator(nn.Module):
     def __init__(self, in_dim, out_dim):
         super(Generator, self).__init__()
         self.l1 = nn.Linear(in_dim, in_dim)
-        # self.l2 = nn.Linear(GEN_LATENT, WINDOW_LEN // 10)
+        self.l2 = nn.Linear(in_dim, in_dim)
+        # self.l3 = nn.Linear(in_dim, in_dim)
         # self.l3 = nn.Linear(WINDOW_LEN // 10, GEN_LATENT)
         self.l4 = nn.Linear(in_dim, out_dim)
 
     def forward(self, x):
         x = F.relu(self.l1(x))
-        # x = F.relu(self.l2(x))
+        x = F.relu(self.l2(x))
         # x = F.relu(self.l3(x))
-        x = F.relu(self.l4(x))
+        x = self.l4(x)
         return x
 
 

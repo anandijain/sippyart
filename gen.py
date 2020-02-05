@@ -15,18 +15,24 @@ from scipy.io.wavfile import write
 import matplotlib.pyplot as plt
 
 import utils
-import models 
+import models
+import loaders
+# device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+device = torch.device("cpu")
 
 GEN_PATH = 'gen_smol.pth'
 DISC_PATH = 'disc_smol.pth'
-DIRECTORY = "/home/sippycups/Music/2018/"
-FILE_NAMES = os.listdir(DIRECTORY)
+# DIRECTORY = "/home/sippycups/Music/2018/"
+FN = '/home/sippycups/Music/2019/81 - 9 21 19 2.wav'
 
-FAKES_PATH = 'samples/'
+# FILE_NAMES = os.listdir(DIRECTORY)
 
-WINDOW_LEN = 1024
+FAKES_PATH = 'samples/sound/'
+
+WINDOW_LEN = 4410
 # GEN_LATENT = WINDOW_LEN // 100
-GEN_LATENT = 1024
+GEN_LATENT = 4410
+
 
 def weights_init(m):
     classname = m.__class__.__name__
@@ -38,7 +44,6 @@ def weights_init(m):
 
 
 def prep(load_trained=True, write_gen=True):
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     time_dir = time.asctime()
 
@@ -58,12 +63,15 @@ def prep(load_trained=True, write_gen=True):
     lr = 0.001
     beta1 = 0.5
 
-    dataset = utils.WaveSet(window=WINDOW_LEN)
+    dataset = loaders.WaveSet(fn=FN, win_len=WINDOW_LEN)
+    x = dataset[0]
+
+    print(x.shape)
     dataloader = DataLoader(dataset, batch_size=batch_size,
                             shuffle=True, num_workers=workers)
 
-    netG = gan.Generator(GEN_LATENT, WINDOW_LEN).to(device)
-    netD = gan.Discriminator(WINDOW_LEN).to(device)
+    netG = models.Generator(GEN_LATENT * 2, WINDOW_LEN * 2).to(device)
+    netD = models.Discriminator(WINDOW_LEN * 2).to(device)
 
     if device.type == 'cuda':
         netG = nn.DataParallel(netG, list(range(ngpu)))
@@ -102,13 +110,12 @@ def prep(load_trained=True, write_gen=True):
         'od': optimizerD,
         'og': optimizerG,
         'device': device,
+        'set': dataset
     }
     return d
 
 
-def train_epoch(d=None, load_trained=True, write_gen=True):
-    if not d:
-        d = prep(load_trained=load_trained, write_gen=write_gen)
+def train_epoch(d, epoch, load_trained=True, write_gen=True):
     device = d['device']
     dataloader = d['dataloader']
     netG = d['g']
@@ -142,7 +149,7 @@ def train_epoch(d=None, load_trained=True, write_gen=True):
         D_x = output.mean().item()
         writer.add_scalar('errD_real',  errD_real, iters)
 
-        noise = torch.randn(b_size, GEN_LATENT, device=device)
+        noise = torch.randn(b_size, GEN_LATENT * 2, device=device)
 
         fake = netG(noise)
         label.fill_(fake_label)
@@ -153,7 +160,10 @@ def train_epoch(d=None, load_trained=True, write_gen=True):
         D_G_z1 = output.mean().item()
         errD = errD_real + errD_fake
         optimizerD.step()
-        writer.add_scalar('errD_real',  errD_fake, iters)
+
+        global_iter = i + epoch*len(d['set'])
+
+        writer.add_scalar('errD_real',  errD_fake, global_iter)
 
         netG.zero_grad()
         label.fill_(real_label)
@@ -163,7 +173,7 @@ def train_epoch(d=None, load_trained=True, write_gen=True):
         D_G_z2 = output.mean().item()
         optimizerG.step()
 
-        writer.add_scalar('errG',  errG, iters)
+        writer.add_scalar('errG',  errG, global_iter)
 
         if i % 50 == 0:
             print('[%d/%d]\tLoss_D: %.4f\tLoss_G: %.4f\tD(x): %.4f\tD(G(z)): %.4f / %.4f'
@@ -187,15 +197,16 @@ def train_epoch(d=None, load_trained=True, write_gen=True):
 
 def train(epochs=1000):
     d = prep()
+    print(d)
     print("Starting Training Loop...")
     for i in range(epochs):
-        fakes, G_losses, D_losses = train_epoch(d=d)
-        for fake in fakes:
-            torchaudio.save(d['wav_write_path'] + 'fake_' +
-                            str(i) + '.wav', fake, 44100)
+        fakes, G_losses, D_losses = train_epoch(d, i)
+        to_write = torch.cat(fakes)
+        torchaudio.save(d['wav_write_path'] + 'fake_' +
+                        str(i) + '.wav', to_write, 44100)
     return fakes, G_losses, D_losses
 
 
 if __name__ == "__main__":
-    
+
     f, G, D = train()

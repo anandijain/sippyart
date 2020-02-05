@@ -55,7 +55,7 @@ class WaveSet(Dataset):
         return self.length
 
     def __getitem__(self, idx):
-        x = wave_cat(self.w, idx, self.window_len)
+        x = wave_cat(self.w, 25, self.window_len) #!!!!
         # print(x)
         if np.nan in x:
             print('oh no')
@@ -64,13 +64,14 @@ class WaveSet(Dataset):
 
 class Images(Dataset):
 
-    def __init__(self, root_dir): #, transform=None):
+    def __init__(self, root_dir, transforms=None):
         """
 
         """
         self.root_dir = root_dir
         self.fns = glob.glob(self.root_dir + '/**.jpg')
         self.length = len(self.fns)
+        self.transform = transforms
 
     def __len__(self):
         return self.length
@@ -79,25 +80,31 @@ class Images(Dataset):
         fn = self.fns[idx]
         image = np.array(Image.open(fn), dtype=np.uint8)
         sample = torch.from_numpy(image)
+
+        if self.transform:
+            sample = self.transform(sample)
+
         return sample
 
 
 class Videoset(Dataset):
 
-    def __init__(self, fn):
+    def __init__(self, fn, transforms=None):
         """
 
         """
-        frames, audio, info = torchvision.io.read_video(fn)
+        frames, audio, info = torchvision.io.read_video(fn, pts_unit='sec')
         print(frames)
         self.frames = frames
         self.length = len(self.frames)
-
+        self.transform = transforms
     def __len__(self):
         return self.length
 
     def __getitem__(self, idx):
-        image = self.frames[idx]
+        image = self.frames[0]
+        if self.transform:
+            image = self.transform(image)
         return image
 
 

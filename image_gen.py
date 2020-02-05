@@ -12,6 +12,7 @@ from torchvision import datasets, transforms
 from torch.utils.data import Dataset, DataLoader
 
 import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
 import time
 from torch.utils.tensorboard import SummaryWriter
 
@@ -24,56 +25,73 @@ import models
 import utils
 
 
-# device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-device = torch.device("cpu")
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+# device = torch.device("cpu")
 
-if __name__ == "__main__":
+DATA_PATH = 'data/images'
+T = time.asctime()
+HEIGHT, WIDTH = 256, 256
+CHANNELS = 3
+MIDDLE = 250
+BOTTLENECK = 100
+EPOCHS = 500
+LR = 1e-4
+BATCH_SIZE = 256
+edits = transforms.Compose([
+    transforms.ToPILImage(),
+    transforms.Resize((HEIGHT, WIDTH)),
+    transforms.ToTensor()])
 
-    DATA_PATH = 'data/images'
-    T = time.asctime()
-    MIDDLE = 30
-    BOTTLENECK = 20
-    EPOCHS = 50
-    LR = 1e-5
-    BATCH_SIZE = 16
-    
-    images = loaders.Videoset(
-        '/home/sippycups/Videos/short_clips/7 9 19/clouds2.mp4')
+def prep():
+    images = loaders.Images(
+        '/home/sippycups/audio/data/images', transforms=edits)
     data = images[0]
-
     dataloader = DataLoader(images, shuffle=True, batch_size=BATCH_SIZE)
 
     print(data.shape)
-    HEIGHT, WIDTH, CHANNELS = data.shape
     dim = data.flatten().shape[0]
 
     writer = SummaryWriter(
         f"runs/image_gen_test_MID_{MIDDLE}_BOTTLE_{BOTTLENECK}_{T}")
-    os.makedirs(f'samples/images/image_gen_{T}')
 
     model = models.VAE(dim, middle=MIDDLE, bottleneck=BOTTLENECK).to(device)
-
+    print(model)
     optimizer = optim.Adam(model.parameters(), lr=LR)
+    write_to = f'samples/images/image_gen_{T}'
+    os.makedirs(write_to)
+    d = {
+        'write_to': write_to,
+        'writer': writer,
+        'dataloader': dataloader,
+        'model': model,
+        'optimizer': optimizer,
+        'set': images,
+        'model_fn': 'models/image_gen1.pth'
+    }
+    return d
+
+def train(d):
 
     samples = []
     for epoch in range(EPOCHS):
-        for i, data in enumerate(images):
+        for i, data in enumerate(d['dataloader']):
             data = data.flatten().float().to(device) / 255
-            optimizer.zero_grad()
+            d['optimizer'].zero_grad()
 
-            recon_batch, mu, logvar = model(data)
-            # print(f'recon: {np.unique(recon_batch.cpu().detach().numpy())}')
-            # print(f'x: {np.unique(data.cpu().detach().numpy())}')
+            recon_batch, mu, logvar = d['model'](data)
             loss = utils.kl_loss(recon_batch, data, mu, logvar)
             loss.backward()
 
-            idx = len(images) * epoch + i
-            writer.add_scalar('train_loss', loss.item(), global_step=idx)
-
-            optimizer.step()
+            idx = len(d['set']) * epoch + i
+            d['writer'].add_scalar('train_loss', loss.item(), global_step=idx)
+            if i % 500 == 0:
+                print(
+                    f'recon: {np.unique(recon_batch.cpu().detach().numpy())}')
+                print(f'x: {np.unique(data.cpu().detach().numpy())}')
+            d['optimizer'].step()
             with torch.no_grad():
                 sample = torch.randn(1, BOTTLENECK).to(device)
-                sample = model.decode(sample).cpu()
+                sample = d['model'].decode(sample).cpu()
                 sample = sample.view(HEIGHT, WIDTH, CHANNELS)
                 scipy.misc.imsave(
                     f'samples/images/image_gen_{T}/img_{idx}.png', sample.numpy())
@@ -81,4 +99,10 @@ if __name__ == "__main__":
 
     video = torch.cat(samples).view(-1, HEIGHT, WIDTH, CHANNELS) * 255
     print(f'video.shape: {video.shape}')
-    # torchvision.io.write_video('tv_test2.mp4', video, 60)
+    torchvision.io.write_video('tv_test2.mp4', video, 60)
+    torch.save(d["m"].state_dict(), d['model_fn'])
+
+if __name__ == "__main__":
+    d = prep()
+    print(d)
+    train(d)
