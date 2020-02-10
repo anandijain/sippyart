@@ -19,14 +19,14 @@ import models
 import loaders
 
 # larger window sizes wont usually work on my GPU because of the RAM
-# device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-device = torch.device("cpu")
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+# device = torch.device("cpu")
 print(device)
 
 #CUTOFF_FREQ = 12000
 LOG_INTERVAL = 1
 
-BATCH_SIZE = 2
+BATCH_SIZE = 1
 WINDOW_SECONDS = 1  # 1.5  # n
 MIDDLE = 400  # 11025 # 22050 # 44100
 BOTTLENECK = 200
@@ -105,6 +105,10 @@ def train_epoch(d, epoch: int, save=False):
 
         recon_batch, mu, logvar = model(data)
         recon_batch = recon_batch.view(BATCH_SIZE, 2, -1)
+        
+        # print(f'data.shape: {data.shape}')
+        # print(f'recon.shape: {recon_batch.shape}')
+
         loss = utils.kl_loss(recon_batch, data, mu, logvar)
         loss.backward()
         idx = len(dataset) * epoch + batch_idx
