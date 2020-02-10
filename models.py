@@ -37,21 +37,26 @@ class VAE(nn.Module):
 
 
 class VAEConv1d(nn.Module):
-    def __init__(self, dim=1660, middle=400, bottleneck=100):
+    # TODO, generalize in dim, but only doing win_len of 88100
+    def __init__(self, flat_len, bottleneck=250):  #, dim=1660, middle=400, bottleneck=100):
         super(VAEConv1d, self).__init__()
-        self.dim = dim
-        self.conv1 = nn.Conv1d(1, 1, 3, stride=2)
-        # self.conv2 = nn.Conv1d(1, 1, 3, stride=2)
-        self.fc1 = nn.Linear(dim//2 - 1, middle)
-        self.fc21 = nn.Linear(middle, bottleneck)
-        self.fc22 = nn.Linear(middle, bottleneck)
-        self.fc3 = nn.Linear(bottleneck, middle)
-        self.fc4 = nn.Linear(middle, dim)
+        self.dim = flat_len // 2
+        # w window len of 88100
+        self.conv1 = nn.Conv1d(2, 2, self.dim//10, stride=4)  # o1.shape torch.Size([1, 2, 19846])
+        self.conv2 = nn.Conv1d(2, 2, self.dim//5, stride=4)  # o2.shape 1, 2, 552
+        self.fc21 = nn.Linear(1104, bottleneck)
+        self.fc22 = nn.Linear(1104, bottleneck)
+        self.fc3 = nn.Linear(bottleneck, 1104)
+        self.fc4 = nn.Linear(1104, flat_len)
+
 
     def encode(self, x):
+        print(f'{x.shape}')
         x = F.relu(self.conv1(x))
-        # x = F.relu(self.conv2(x))
-        h1 = F.relu(self.fc1(x))
+        x = F.relu(self.conv2(x))
+        h1 = x.view(-1)
+        print(f'h1: {h1.shape}')
+        # h1 = F.relu(self.fc1(x))
         return self.fc21(h1), self.fc22(h1)
 
     def reparameterize(self, mu, logvar):

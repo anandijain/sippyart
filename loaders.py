@@ -36,30 +36,36 @@ class WavLSTM(Dataset):
 
 
 class WaveSet(Dataset):
-    def __init__(self, fn: str, seconds: int=None, win_len:int=None):  # , resample_to=None):
+    def __init__(self, fn: str, seconds: int=None, win_len:int=None, start_pct:float=0, end_pct:float=0.15):  # , resample_to=None):
         """
         seconds is int that is multiplied by sample rate 
         """
         wave = torchaudio.load(filepath=fn)
         self.w = wave[0]
+        self.wave_len = len(self.w[0])
+        start_idx = int(self.wave_len * start_pct)
+        end_idx = int(self.wave_len * end_pct)
+        l = self.w[0][start_idx:end_idx]
+        r = self.w[1][start_idx:end_idx]
+        self.w = (l, r)
         self.sample_rate = wave[1]
         if seconds is None:
             window_len = win_len
         else:
             window_len = int(seconds * self.sample_rate)
 
-        self.length = (len(self.w[0]) // window_len) - 2
+        self.length = (len(self.w[0]) // window_len) - 1
         self.window_len = window_len
 
     def __len__(self):
         return self.length
 
     def __getitem__(self, idx):
-        x = wave_cat(self.w, 25, self.window_len) #!!!!
+        x = wave_cat(self.w, idx, self.window_len)
         # print(x)
         if np.nan in x:
             print('oh no')
-        return x.view(1, -1)
+        return x # x.view(1, -1)
 
 
 class Images(Dataset):
