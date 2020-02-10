@@ -17,111 +17,61 @@ from torch.utils.tensorboard import SummaryWriter
 import utils
 import models
 import loaders
+import train
 
 # larger window sizes wont usually work on my GPU because of the RAM
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 # device = torch.device("cpu")
 print(device)
 
-#CUTOFF_FREQ = 12000
 LOG_INTERVAL = 1
-
-BATCH_SIZE = 1
-WINDOW_SECONDS = 1  # 1.5  # n
+BATCH_SIZE = 52
+WINDOW_SECONDS = 2  # 1.5  # n
 MIDDLE = 400  # 11025 # 22050 # 44100
-BOTTLENECK = 200
-EPOCHS = 150
-START_SAVING_AT = 100
+BOTTLENECK = 300
+EPOCHS = 100
+START_SAVING_AT = 50
 SAVE_FREQ = 1
 SHUFFLE = False
-# works on gpu
-CONFIG_1 = {
-    'WINDOW_SECONDS': 2,  # n
-    'MIDDLE': 300,
-    'BOTTLENECK': 200,
-}
 
-CONFIG_2 = {
-    'WINDOW_SECONDS': 1.1,  # n
-    'MIDDLE': 600,
-    'BOTTLENECK': 500,
-}
-CONFIG_3 = {
-    'WINDOW_SECONDS': 3,  # n
-    'MIDDLE': 215,
-    'BOTTLENECK': 100,
-}
+RUN_TIME = time.asctime()
 
 MODEL_FN = f'models/n_{WINDOW_SECONDS}_mid_{MIDDLE}_bot_{BOTTLENECK}.pth'
 
 FILE_NAMES = [
     # place file names here
-    '/home/sippycups/Music/2020/81 - 2 8 20.wav'
+    # '/home/sippycups/Music/2020/81 - 2 8 20.wav'
+    # '/home/sippycups/Music/2019/5 14 19 matt anand ilan.wav'
+    # '/home/sippycups/Music/2019/81 - 10 18 19.wav'
+    # '/home/sippycups/Music/2019/81 - 9 25 19.wav'
+    '/home/sippycups/Music/2019/81 - 9 23 19.wav'
 ]
 LOAD_MODEL = False
-# RESAMPLE_RATE = 44100 # TODO
 
-
-def train(fn, epochs=EPOCHS, start_saving_at=START_SAVING_AT, save=True, save_model=True, lopass=False):
+def train_vae(fn, epochs=EPOCHS, start_saving_at=START_SAVING_AT, save=True, save_model=True, lopass=False):
     d = prep(fn)
     short_fn = utils.full_fn_to_name(fn)
     y_hats = []
     for epoch in range(1, epochs + 1):  # [epochs, 2, n]
         print(f'epoch: {epoch} {short_fn}')
         if epoch < start_saving_at:
-            train_epoch(d, epoch)
+            train.train_epoch(d, epoch, BATCH_SIZE, device)
         else:
-            y_hat = train_epoch(d, epoch)
-            y_hats.append(y_hat.view(2, -1))
+            train.train_epoch(d, epoch, BATCH_SIZE, device)
+            y_hat = utils.gen_recon(d['m'], BOTTLENECK, device)
+            y_hats.append(y_hat)
 
     song = torch.cat(y_hats, dim=1)
     print(song)
 
+    MODEL_FN: f'models/n_{WINDOW_SECONDS}_mid_{MIDDLE}_bot_{BOTTLENECK}.pth'
     if save:
-        save_wavfn = f'vaeconv_{short_fn}_n_{WINDOW_SECONDS}_mid_{MIDDLE}_bot_{BOTTLENECK}.wav'
+        save_wavfn = f'vaeconv_{short_fn}_{RUN_TIME}.wav'
 
         torchaudio.save(d['path'] + save_wavfn, song, d['sr'])
     if save_model:
         torch.save(d["m"].state_dict(), MODEL_FN)
     return song
-
-
-def train_epoch(d, epoch: int, save=False):
-
-    model = d['m']
-    optimizer = d['o']
-    dataset = d['data']
-    train_loader = d['loader']
-    sample_rate = d['sr']
-    path = d['path']
-
-    samples = []
-    model.train()
-    train_loss = 0
-    for batch_idx, data in enumerate(train_loader):
-        data = data.to(device)
-        data = data.view(BATCH_SIZE, 2, -1)
-        optimizer.zero_grad()
-
-        recon_batch, mu, logvar = model(data)
-        recon_batch = recon_batch.view(BATCH_SIZE, 2, -1)
-        
-        # print(f'data.shape: {data.shape}')
-        # print(f'recon.shape: {recon_batch.shape}')
-
-        loss = utils.kl_loss(recon_batch, data, mu, logvar)
-        loss.backward()
-        idx = len(dataset) * epoch + batch_idx
-
-        d['writer'].add_scalar('train_loss', loss.item(), global_step=idx)
-
-        train_loss += loss.item()
-        optimizer.step()
-        with torch.no_grad():
-            sample = torch.randn(1, BOTTLENECK).to(device)
-            sample = model.decode(sample).cpu()
-            samples.append(sample.view(2, -1))
-    return torch.cat(samples, dim=0)  # to stereo
 
 
 def prep(fn: str, load_model=LOAD_MODEL):
@@ -138,7 +88,7 @@ def prep(fn: str, load_model=LOAD_MODEL):
     print(f'len(dataset): {len(dataset)} (num of windows)')
     window_len = dataset.window_len
     sample_rate = dataset.sample_rate
-
+    # BATCH_SIZE = len(dataset) // 2
     train_loader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=SHUFFLE)
 
     # model = models.VAEConv1d(dim=window_len*2, bottleneck=BOTTLENECK,
@@ -157,7 +107,7 @@ def prep(fn: str, load_model=LOAD_MODEL):
     print(model)
     optimizer = optim.Adam(model.parameters())
     writer = SummaryWriter(
-        f"runs/{short_fn}_n_{WINDOW_SECONDS}_{time.asctime()}")
+        f"runs/{short_fn}_{RUN_TIME}")
 
     d = {
         'm': model,
@@ -178,7 +128,7 @@ def gen_folder(folder="/home/sippycups/Music/2019/"):
     for i, wavfn in enumerate(fns):
         print(f'{i}: {wavfn}')
         try:
-            train(wavfn)
+            train_vae(wavfn)
         except RuntimeError:
             continue
        # if i == 5:
@@ -187,5 +137,5 @@ def gen_folder(folder="/home/sippycups/Music/2019/"):
 
 if __name__ == "__main__":
     for fn in FILE_NAMES:
-        train(fn)
+        train_vae(fn)
     # gen_folder()

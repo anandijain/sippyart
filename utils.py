@@ -6,6 +6,14 @@ import torchaudio
 from torch.nn import functional as F
 
 
+def gen_recon(model, bottleneck, device):
+    samples = []
+    with torch.no_grad():
+        sample = torch.randn(1, bottleneck).to(device)
+        sample = model.decode(sample).cpu().view(2, -1)
+    return sample
+
+
 def sync_sample_rates(fn, fn2):
     w, sr = torchaudio.load(fn)
     w2, sr2 = torchaudio.load(fn2)

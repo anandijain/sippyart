@@ -38,21 +38,25 @@ class VAE(nn.Module):
 
 class VAEConv1d(nn.Module):
     # TODO, generalize in dim, but only doing win_len of 88100
-    def __init__(self, flat_len, bottleneck=250):  #, dim=1660, middle=400, bottleneck=100):
+    def __init__(self, flat_len, bottleneck=100):  #, dim=1660, middle=400, bottleneck=100):
         super(VAEConv1d, self).__init__()
         self.dim = flat_len // 2
         # w window len of 88100
         self.conv1 = nn.Conv1d(2, 2, self.dim//10, stride=4)  # o1.shape torch.Size([1, 2, 19846])
-        self.conv2 = nn.Conv1d(2, 2, self.dim//5, stride=4)  # o2.shape 1, 2, 552
-        self.fc21 = nn.Linear(552, bottleneck)
-        self.fc22 = nn.Linear(552, bottleneck)
-        self.fc3 = nn.Linear(bottleneck, 552)
-        self.fc4 = nn.Linear(552, flat_len)
+        self.conv2 = nn.Conv1d(2, 2, self.dim//10, stride=4)  # o2.shape 1, 2, 552
+        self.conv3 = nn.Conv1d(2, 2, self.dim//50, stride=4)  # o2.shape 1, 2, 552
+        # self.conv4 = nn.Conv1d(2, 2, self.dim//400, stride=4)  # o2.shape 1, 2, 552
+        self.fc21 = nn.Linear(498, bottleneck) # 498
+        self.fc22 = nn.Linear(498, bottleneck)
+        self.fc3 = nn.Linear(bottleneck, 498)
+        self.fc4 = nn.Linear(498, flat_len)
 
 
     def encode(self, x):
         x = F.relu(self.conv1(x))
         x = F.relu(self.conv2(x))
+        x = F.relu(self.conv3(x))
+        # x = F.relu(self.conv4(x))
         # print(f'{x.shape}')
         # h1 = x.view(-1)
         h1 = x.view(x.size(0), -1)

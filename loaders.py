@@ -36,7 +36,7 @@ class WavLSTM(Dataset):
 
 
 class WaveSet(Dataset):
-    def __init__(self, fn: str, seconds: int=None, win_len:int=None, start_pct:float=0, end_pct:float=0.15):  # , resample_to=None):
+    def __init__(self, fn: str, seconds: int=None, win_len:int=None, start_pct:float=0, end_pct:float=1):  # , resample_to=None):
         """
         seconds is int that is multiplied by sample rate 
         """
@@ -45,16 +45,17 @@ class WaveSet(Dataset):
         self.wave_len = len(self.w[0])
         start_idx = int(self.wave_len * start_pct)
         end_idx = int(self.wave_len * end_pct)
-        l = self.w[0][start_idx:end_idx]
-        r = self.w[1][start_idx:end_idx]
-        self.w = (l, r)
+        l = self.w[0][start_idx:end_idx].view(1, -1)
+        r = self.w[1][start_idx:end_idx].view(1, -1)
+        
+        self.w = torch.cat([l, r], dim=0)
         self.sample_rate = wave[1]
         if seconds is None:
             window_len = win_len
         else:
             window_len = int(seconds * self.sample_rate)
 
-        self.length = (len(self.w[0]) // window_len) - 1
+        self.length = (len(self.w[0]) // window_len) - 2
         self.window_len = window_len
 
     def __len__(self):
