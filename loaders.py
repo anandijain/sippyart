@@ -1,17 +1,20 @@
-from PIL import Image
 import os
 import glob
+
 import numpy as np
 import pandas as pd
-from skimage import io, transform
-import matplotlib.pyplot as plt
+
+import torch
 import torchaudio
 import torchvision
-import torch
+
 from torch.nn import functional as F
 from torch.utils.data import Dataset, DataLoader
-from torchvision import transforms, utils
-plt.ion()   # interactive mode
+
+from PIL import Image
+
+import utils
+
 """
 goal:
 train VAE to compress audio to latent space,
@@ -37,28 +40,34 @@ class WavLSTM(Dataset):
 
 class WaveSet(Dataset):
     # , resample_to=None):
-    def __init__(self, fn: str, seconds: int = None, win_len: int = None, start_pct: float = 0, end_pct: float = 1):
+    def __init__(self, fns: list, seconds: int, win_len: int = None, start_pct: float = 0, end_pct: float = 1):
         """
         seconds is int that is multiplied by sample rate 
+        for using multiple songs at same time, im assuming same sr for rn
+
         """
-        wave = torchaudio.load(filepath=fn)
-        self.w = wave[0]
+        # waves, srs = torchaudio.load(filepath=fn)
+        self.w, srs = utils.get_n(fns, cat=True)
+        self.sample_rate = srs[0]
+        print(f'self.w shape: {self.w.shape}')
+
         if np.nan in self.w[0] or np.nan in self.w[1]:
             print('oh no, there are nans in this wav')
+
         self.wave_len = len(self.w[0])
+        print(f'self.wave_len: {self.wave_len}')
         start_idx = int(self.wave_len * start_pct)
         end_idx = int(self.wave_len * end_pct)
         l = self.w[0][start_idx:end_idx].view(1, -1)
         r = self.w[1][start_idx:end_idx].view(1, -1)
-
         self.w = torch.cat([l, r], dim=0)
-        self.sample_rate = wave[1]
+
         if seconds is None:
             window_len = win_len
         else:
             window_len = int(seconds * self.sample_rate)
 
-        self.length = (len(self.w[0]) // window_len) - 2
+        self.length = (self.wave_len // window_len) - 2
         self.window_len = window_len
 
     def __len__(self):
@@ -137,6 +146,9 @@ def data_windows(w: torch.tensor, n: int = 1000):
 
 
 if __name__ == "__main__":
-
-    wave, sr = torchaudio.load('data/8_14_18.wav')
-    windows = data_windows(wave, sr // 4)
+    fns = [
+        '/home/sippycups/Music/2020/81 - 2 8 20.wav', 
+        '/home/sippycups/Music/2019/81 - 4 3 19.wav'
+    ]
+    dataset = WaveSet(fns, seconds=1)
+    print(dataset[0])

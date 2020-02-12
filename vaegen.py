@@ -26,30 +26,33 @@ print(device)
 
 RUN_TIME = time.asctime()
 
-BATCH_SIZE = 15
+BATCH_SIZE = 98
 WINDOW_SECONDS = 2  # larger window sizes wont usually work on my GPU because of the RAM
-BOTTLENECK = 500
+BOTTLENECK = 250
 
 # start_saving should be less than epochs 
-EPOCHS = 25
+EPOCHS = 50
 START_SAVING_AT = 0
 
 START_FRAC = 0
-END_FRAC = 0.20
+END_FRAC = 1
 
 SAVE_FREQ = 1
 LOG_INTERVAL = 1
 SHUFFLE = False
 
 MODEL_FN = 'n_2.pth'
-LOAD_MODEL = False
+LOAD_MODEL = True
 SAVE_MODEL = True
-# LR = 0.1
+# LR = 1e-3
+LR = None
+
+SAVE_RUN = False
 
 FILE_NAMES = [
     # place file names here
-    '/home/sippycups/Music/2020/81 - 2 8 20.wav'
-    # '/home/sippycups/Music/2019/81 - 4 3 19.wav'
+    # '/home/sippycups/Music/2020/81 - 2 8 20.wav'
+    '/home/sippycups/Music/2019/81 - 4 3 19.wav'
     # '/home/sippycups/Music/misc/81 - misc - 18 9 13 17.wav'
     # '/home/sippycups/Music/misc/81 - misc - 11 6 30 17 2.wav'
 
@@ -103,8 +106,10 @@ def prep(fn: str):
         model = utils.load_model(model, MODEL_FN)
 
     print(model)
-
-    optimizer = optim.Adam(model.parameters())  #, lr=LR)
+    if LR is None:
+        optimizer = optim.Adam(model.parameters())
+    else:
+        optimizer = optim.Adam(model.parameters(), lr=LR)
 
     writer = SummaryWriter(
         f"runs/{short_fn}_{RUN_TIME}")
@@ -122,6 +127,5 @@ def prep(fn: str):
 
 
 if __name__ == "__main__":
-    for fn in FILE_NAMES:
-        train_vae(fn)
+    train_vae(FILES)
     # gen_folder()

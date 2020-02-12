@@ -6,6 +6,7 @@ import numpy as np
 import torchaudio
 from torch.nn import functional as F
 
+# TODO sync_n sample rates 
 
 def gen_recon(model, bottleneck: int, device):
     samples = []
@@ -29,6 +30,14 @@ def sync_sample_rates(fn: str, fn2: str):
         w2 = resampler.forward(w2)
         sr2 = sr
     return w, sr, w2, sr2
+
+
+def get_n(fns:list, cat=True):
+    tups = list(map(torchaudio.load, fns))
+    waves, srs = list(zip(*tups))
+    if cat:
+        return torch.cat(waves, dim=1), srs
+    return waves, srs
 
 
 def get_two(fn, fn2):
