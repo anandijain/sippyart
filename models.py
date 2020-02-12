@@ -38,7 +38,8 @@ class VAE(nn.Module):
 
 class VAEConv1d(nn.Module):
     # TODO, generalize in dim, but only doing win_len of 88100
-    def __init__(self, flat_len, bottleneck=100):  #, dim=1660, middle=400, bottleneck=100):
+    # , dim=1660, middle=400, bottleneck=100):
+    def __init__(self, flat_len, bottleneck=100):
         super(VAEConv1d, self).__init__()
         self.dim = flat_len // 2
         # w window len of 88100
@@ -53,11 +54,10 @@ class VAEConv1d(nn.Module):
         # self.conv3 = nn.Conv1d(2, 2, self.dim//50, stride=2)
         # self.conv4 = nn.Conv1d(2, 2, self.dim//100, stride=4)
         # self.conv5 = nn.Conv1d(2, 2, self.dim//200, stride=4)
-        self.fc21 = nn.Linear(690, bottleneck) # 498
+        self.fc21 = nn.Linear(690, bottleneck)  # 498
         self.fc22 = nn.Linear(690, bottleneck)
         self.fc3 = nn.Linear(bottleneck, 690)
         self.fc4 = nn.Linear(690, flat_len)
-
 
     def encode(self, x):
         x = F.relu(self.conv1(x))
@@ -85,7 +85,7 @@ class VAEConv1d(nn.Module):
     def forward(self, x):
         mu, logvar = self.encode(x)
         z = self.reparameterize(mu, logvar)
-        recon = self.decode(z) # .view(2, -1)
+        recon = self.decode(z)  # .view(2, -1)
         return recon, mu, logvar
 
 

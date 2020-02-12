@@ -1,4 +1,5 @@
 import os
+import glob
 import torch
 import numpy as np
 
@@ -6,7 +7,7 @@ import torchaudio
 from torch.nn import functional as F
 
 
-def gen_recon(model, bottleneck, device):
+def gen_recon(model, bottleneck: int, device):
     samples = []
     with torch.no_grad():
         sample = torch.randn(1, bottleneck).to(device)
@@ -14,7 +15,7 @@ def gen_recon(model, bottleneck, device):
     return sample
 
 
-def sync_sample_rates(fn, fn2):
+def sync_sample_rates(fn: str, fn2: str):
     w, sr = torchaudio.load(fn)
     w2, sr2 = torchaudio.load(fn2)
     if sr == sr2:
@@ -43,16 +44,37 @@ def get_two(fn, fn2):
         new = w2[:][:w_len]
     return (w, sr), (w2, sr2)
 
-def full_fn_to_name(fn):
+
+def full_fn_to_name(fn: str):
     return fn.split('/')[-1].split('.')[0].replace(' ', '_')
+
+
+def load_model(model, fn: str):
+    try:
+        model.load_state_dict(torch.load(fn))
+        print(f'loaded: {fn}')
+        return model
+    except FileNotFoundError:
+        print(f'model file {fn} not found')
+    except RuntimeError:
+        print(f'{fn} architecture most likely incompatible with model')
+    return model
+
+
+def make_folder(path):
+    try:
+        os.makedirs(path)
+        print(f'made: {path}')
+    except FileExistsError:
+        print(f'writing to existing {path}')
 
 
 def kl_loss(recon_x, x, mu, logvar):
     try:
         BCE = F.binary_cross_entropy(recon_x, x, reduction='sum')
     except RuntimeError:
-        print(f'recon: {np.unique(recon_x.cpu().detach().numpy())}' )
-        print(f'x: {np.unique(x.cpu().detach().numpy())}' )
-        
+        print(f'recon: {np.unique(recon_x.cpu().detach().numpy())}')
+        print(f'x: {np.unique(x.cpu().detach().numpy())}')
+
     KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
     return BCE + KLD

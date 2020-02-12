@@ -19,13 +19,13 @@ output of VAE encoding is a single element of LSTM sequence
 
 """
 
+
 class WavLSTM(Dataset):
     def __init__(self, wave, sr, win_len):
         self.w, self.sr = wave, sr
         self.windows = data_windows(wave, win_len)
-        self.length = len(self.windows) 
+        self.length = len(self.windows)
 
-        
     def __len__(self):
         return self.length
 
@@ -36,18 +36,21 @@ class WavLSTM(Dataset):
 
 
 class WaveSet(Dataset):
-    def __init__(self, fn: str, seconds: int=None, win_len:int=None, start_pct:float=0, end_pct:float=1):  # , resample_to=None):
+    # , resample_to=None):
+    def __init__(self, fn: str, seconds: int = None, win_len: int = None, start_pct: float = 0, end_pct: float = 1):
         """
         seconds is int that is multiplied by sample rate 
         """
         wave = torchaudio.load(filepath=fn)
         self.w = wave[0]
+        if np.nan in self.w[0] or np.nan in self.w[1]:
+            print('oh no, there are nans in this wav')
         self.wave_len = len(self.w[0])
         start_idx = int(self.wave_len * start_pct)
         end_idx = int(self.wave_len * end_pct)
         l = self.w[0][start_idx:end_idx].view(1, -1)
         r = self.w[1][start_idx:end_idx].view(1, -1)
-        
+
         self.w = torch.cat([l, r], dim=0)
         self.sample_rate = wave[1]
         if seconds is None:
@@ -63,10 +66,8 @@ class WaveSet(Dataset):
 
     def __getitem__(self, idx):
         x = wave_cat(self.w, idx, self.window_len)
-        print(f'x.shape{x.shape}')
-        if np.nan in x:
-            print('oh no')
-        return x # x.view(1, -1)
+        # print(f'x.shape{x.shape}')
+        return x
 
 
 class Images(Dataset):
@@ -105,6 +106,7 @@ class Videoset(Dataset):
         self.frames = frames
         self.length = len(self.frames)
         self.transform = transforms
+
     def __len__(self):
         return self.length
 
@@ -115,15 +117,14 @@ class Videoset(Dataset):
         return image
 
 
-def wave_cat(w:torch.tensor, idx:int, n:int, dim=0):
+def wave_cat(w: torch.tensor, idx: int, n: int, dim=0):
     l = w[0][idx*n:(idx + 1)*n].view(1, -1)
     r = w[1][idx*n:(idx + 1)*n].view(1, -1)
     x = torch.cat([l, r], dim=dim)
     return x
 
 
-
-def data_windows(w:torch.tensor, n: int = 1000):
+def data_windows(w: torch.tensor, n: int = 1000):
     # assuming stereo channels, w.shape == (2, n)
     windows = []
     length = len(w[0]) // n
@@ -135,9 +136,7 @@ def data_windows(w:torch.tensor, n: int = 1000):
     return windows
 
 
-
-
 if __name__ == "__main__":
-    
+
     wave, sr = torchaudio.load('data/8_14_18.wav')
     windows = data_windows(wave, sr // 4)
