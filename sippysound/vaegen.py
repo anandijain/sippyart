@@ -51,7 +51,7 @@ SAVE_RUN = False
 
 FILE_NAMES = [
     # place file names here
-    '/home/sippycups/Music/2019/81 - 2019 - 08 2 5 19.mp3'
+    'fjaloo.wav'
 ]
 
 def train_vae(fns:list):
