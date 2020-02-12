@@ -59,13 +59,12 @@ FILE_NAMES = [
 
 ]
 
-def train_vae(fn, epochs=EPOCHS, save_song=SAVE_SONG, save_model=SAVE_MODEL):
-    d = prep(fn)
-    short_fn = utils.full_fn_to_name(fn)
+def train_vae(fns:list, epochs=EPOCHS, save_song=SAVE_SONG, save_model=SAVE_MODEL):
+    d = prep(fns)
     y_hats = []
 
     for epoch in range(1, epochs + 1):
-        print(f'epoch: {epoch} {short_fn}')
+        print(f'epoch: {epoch}')
         
         if epoch < START_SAVING_AT:
             train.train_epoch(d, epoch, BATCH_SIZE, device)
@@ -78,7 +77,7 @@ def train_vae(fn, epochs=EPOCHS, save_song=SAVE_SONG, save_model=SAVE_MODEL):
     print(song)
 
     if save_song:
-        save_wavfn = f'vaeconv_{short_fn}_{RUN_TIME}.wav'
+        save_wavfn = f'vaeconv_{RUN_TIME}.wav'
         torchaudio.save(d['path'] + save_wavfn, song, d['sr'])
 
     if save_model:
@@ -87,14 +86,14 @@ def train_vae(fn, epochs=EPOCHS, save_song=SAVE_SONG, save_model=SAVE_MODEL):
     return song
 
 
-def prep(fn: str):
-    short_fn = utils.full_fn_to_name(fn)
+def prep(fns: list):
+    # short_fn = utils.full_fn_to_name(fn)
 
-    path = '../samples/sound/' + short_fn + '/'
+    path = '../samples/sound/'
     utils.make_folder(path)
 
     dataset = loaders.WaveSet(
-        fn, seconds=WINDOW_SECONDS, start_pct=START_FRAC, end_pct=END_FRAC)
+        fns, seconds=WINDOW_SECONDS, start_pct=START_FRAC, end_pct=END_FRAC)
 
     print(f'len(dataset): {len(dataset)} (num of windows)')
     print(f'sample_rate：{dataset.sample_rate}')
@@ -114,7 +113,7 @@ def prep(fn: str):
         optimizer = optim.Adam(model.parameters(), lr=LR)
 
     writer = SummaryWriter(
-        f"runs/{short_fn}_{RUN_TIME}")
+        f"runs/{RUN_TIME}")
 
     d = {
         'm': model,
