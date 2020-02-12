@@ -44,6 +44,7 @@ SHUFFLE = False
 MODEL_FN = 'n_2.pth'
 LOAD_MODEL = True
 SAVE_MODEL = True
+SAVE_SONG = True
 # LR = 1e-3
 LR = None
 
@@ -51,21 +52,22 @@ SAVE_RUN = False
 
 FILE_NAMES = [
     # place file names here
-    # '/home/sippycups/Music/2020/81 - 2 8 20.wav'
+    '/home/sippycups/Music/2020/81 - 2 8 20.wav',
     '/home/sippycups/Music/2019/81 - 4 3 19.wav'
     # '/home/sippycups/Music/misc/81 - misc - 18 9 13 17.wav'
     # '/home/sippycups/Music/misc/81 - misc - 11 6 30 17 2.wav'
 
 ]
 
-def train_vae(fn, epochs=EPOCHS, start_saving_at=START_SAVING_AT, save_song=True, save_model=SAVE_MODEL):
+def train_vae(fn, epochs=EPOCHS, save_song=SAVE_SONG, save_model=SAVE_MODEL):
     d = prep(fn)
     short_fn = utils.full_fn_to_name(fn)
     y_hats = []
 
     for epoch in range(1, epochs + 1):
         print(f'epoch: {epoch} {short_fn}')
-        if epoch < start_saving_at:
+        
+        if epoch < START_SAVING_AT:
             train.train_epoch(d, epoch, BATCH_SIZE, device)
         else:
             train.train_epoch(d, epoch, BATCH_SIZE, device)
@@ -88,7 +90,7 @@ def train_vae(fn, epochs=EPOCHS, start_saving_at=START_SAVING_AT, save_song=True
 def prep(fn: str):
     short_fn = utils.full_fn_to_name(fn)
 
-    path = 'samples/sound/' + short_fn + '/'
+    path = '../samples/sound/' + short_fn + '/'
     utils.make_folder(path)
 
     dataset = loaders.WaveSet(
@@ -127,5 +129,5 @@ def prep(fn: str):
 
 
 if __name__ == "__main__":
-    train_vae(FILES)
+    train_vae(FILE_NAMES)
     # gen_folder()
