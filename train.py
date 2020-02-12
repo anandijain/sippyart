@@ -30,7 +30,7 @@ def train_epoch(d, epoch: int, batch_size, device, save=False):
         loss.backward()
         idx = len(dataset) * epoch + batch_idx
 
-        d['writer'].add_scalar('train_loss', loss.item(), global_step=idx)
+        # d['writer'].add_scalar('train_loss', loss.item(), global_step=idx)
 
         train_loss += loss.item()
         optimizer.step()

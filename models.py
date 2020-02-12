@@ -42,20 +42,27 @@ class VAEConv1d(nn.Module):
         super(VAEConv1d, self).__init__()
         self.dim = flat_len // 2
         # w window len of 88100
-        self.conv1 = nn.Conv1d(2, 2, self.dim//10, stride=4)  # o1.shape torch.Size([1, 2, 19846])
-        self.conv2 = nn.Conv1d(2, 2, self.dim//10, stride=4)  # o2.shape 1, 2, 552
-        self.conv3 = nn.Conv1d(2, 2, self.dim//50, stride=4)  # o2.shape 1, 2, 552
-        # self.conv4 = nn.Conv1d(2, 2, self.dim//400, stride=4)  # o2.shape 1, 2, 552
-        self.fc21 = nn.Linear(498, bottleneck) # 498
-        self.fc22 = nn.Linear(498, bottleneck)
-        self.fc3 = nn.Linear(bottleneck, 498)
-        self.fc4 = nn.Linear(498, flat_len)
+        self.conv1 = nn.Conv1d(2, 2, self.dim//10, stride=2)
+        self.conv2 = nn.Conv1d(2, 2, self.dim//10, stride=2)
+        self.conv3 = nn.Conv1d(2, 2, self.dim//10, stride=4)
+        self.conv4 = nn.Conv1d(2, 2, self.dim//100, stride=2)
+        # self.conv5 = nn.Conv1d(2, 2, self.dim//10, stride=4)
+        # self.conv2 = nn.Conv1d(2, 2, self.dim//10, stride=2)
+        # self.conv3 = nn.Conv1d(2, 2, self.dim//50, stride=2)
+        # self.conv4 = nn.Conv1d(2, 2, self.dim//100, stride=4)
+        # self.conv5 = nn.Conv1d(2, 2, self.dim//200, stride=4)
+        self.fc21 = nn.Linear(774, bottleneck) # 498
+        self.fc22 = nn.Linear(774, bottleneck)
+        self.fc3 = nn.Linear(bottleneck, 774)
+        self.fc4 = nn.Linear(774, flat_len)
 
 
     def encode(self, x):
         x = F.relu(self.conv1(x))
         x = F.relu(self.conv2(x))
         x = F.relu(self.conv3(x))
+        x = F.relu(self.conv4(x))
+        # x = F.relu(self.conv5(x))
         # x = F.relu(self.conv4(x))
         # print(f'{x.shape}')
         # h1 = x.view(-1)

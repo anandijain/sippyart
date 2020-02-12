@@ -20,23 +20,24 @@ import loaders
 import train
 
 # larger window sizes wont usually work on my GPU because of the RAM
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-# device = torch.device("cpu")
+# device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+device = torch.device("cpu")
 print(device)
 
 LOG_INTERVAL = 1
-BATCH_SIZE = 52
+BATCH_SIZE = 11
 WINDOW_SECONDS = 2  # 1.5  # n
 MIDDLE = 400  # 11025 # 22050 # 44100
-BOTTLENECK = 300
-EPOCHS = 100
-START_SAVING_AT = 50
+BOTTLENECK = 200
+EPOCHS = 50
+START_SAVING_AT = 0
 SAVE_FREQ = 1
 SHUFFLE = False
 
 RUN_TIME = time.asctime()
 
-MODEL_FN = f'models/n_{WINDOW_SECONDS}_mid_{MIDDLE}_bot_{BOTTLENECK}.pth'
+# MODEL_FN = f'models/n_{WINDOW_SECONDS}_mid_{MIDDLE}_bot_{BOTTLENECK}.pth'
+MODEL_FN = 'n_2.pth'
 
 FILE_NAMES = [
     # place file names here
@@ -44,11 +45,26 @@ FILE_NAMES = [
     # '/home/sippycups/Music/2019/5 14 19 matt anand ilan.wav'
     # '/home/sippycups/Music/2019/81 - 10 18 19.wav'
     # '/home/sippycups/Music/2019/81 - 9 25 19.wav'
-    '/home/sippycups/Music/2019/81 - 9 23 19.wav'
+    # '/home/sippycups/Music/2019/81 - 9 23 19.wav'
+    # '/home/sippycups/Music/2019/81 - 7 28 19.wav'
+    # '/home/sippycups/Music/2018/81 - 2018 - 140 10 25 18.wav'
+    # '/home/sippycups/Music/2018/81 - 2018 - 110 6 30 18.wav',
+    # '/home/sippycups/Music/2018/81 - 2018 - 109 6 29 18 5.wav',
+    # '/home/sippycups/Music/2018/81 - 2018 - 108 6 29 18 4.wav',
+    # '/home/sippycups/Music/2018/81 - 2018 - 107 6 29 18 3.wav',
+    # '/home/sippycups/Music/2018/81 - 2018 - 106 6 29 18 2.wav',
+    # '/home/sippycups/Music/2018/81 - 2018 - 105 6 29 18.wav',
+    # '/home/sippycups/Music/2018/81 - 2018 - 104 6 28 18.wav',
+    # '/home/sippycups/Music/2018/81 - 2018 - 103 6 22 18.wav',
+    # '/home/sippycups/Music/2018/81 - 2018 - 102 6 21 18.wav',
+    # '/home/sippycups/Music/2018/81 - 2018 - 101 6 20 18.wav',
+    # '/home/sippycups/Music/2018/81 - 2018 - 100 6 18 18.wav',
+    # '/home/sippycups/Music/2019/81 - 9 21 19 2.wav'
+    '/home/sippycups/Music/2019/81 - 10 19 19.wav'
 ]
 LOAD_MODEL = False
 
-def train_vae(fn, epochs=EPOCHS, start_saving_at=START_SAVING_AT, save=True, save_model=True, lopass=False):
+def train_vae(fn, epochs=EPOCHS, start_saving_at=START_SAVING_AT, save=True, save_model=False):
     d = prep(fn)
     short_fn = utils.full_fn_to_name(fn)
     y_hats = []
@@ -64,11 +80,10 @@ def train_vae(fn, epochs=EPOCHS, start_saving_at=START_SAVING_AT, save=True, sav
     song = torch.cat(y_hats, dim=1)
     print(song)
 
-    MODEL_FN: f'models/n_{WINDOW_SECONDS}_mid_{MIDDLE}_bot_{BOTTLENECK}.pth'
     if save:
         save_wavfn = f'vaeconv_{short_fn}_{RUN_TIME}.wav'
-
         torchaudio.save(d['path'] + save_wavfn, song, d['sr'])
+
     if save_model:
         torch.save(d["m"].state_dict(), MODEL_FN)
     return song
@@ -88,14 +103,11 @@ def prep(fn: str, load_model=LOAD_MODEL):
     print(f'len(dataset): {len(dataset)} (num of windows)')
     window_len = dataset.window_len
     sample_rate = dataset.sample_rate
-    # BATCH_SIZE = len(dataset) // 2
+
     train_loader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=SHUFFLE)
 
-    # model = models.VAEConv1d(dim=window_len*2, bottleneck=BOTTLENECK,
-    #                          middle=MIDDLE).to(device)
-
     model = models.VAEConv1d(WINDOW_SECONDS*sample_rate*2, bottleneck=BOTTLENECK).to(device)
-
+    # model.load_state_dict(torch.load('n_2.pth'))
     # model = models.VAE(dim=window_len*2, bottleneck=BOTTLENECK,
     #                 middle=MIDDLE).to(device)
     if load_model:
