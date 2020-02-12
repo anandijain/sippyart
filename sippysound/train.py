@@ -1,7 +1,7 @@
 import torch
 import torchaudio
 
-import utils
+from sippysound import utilz
 
 
 def train_epoch(d, epoch: int, batch_size, device, save=False):
@@ -26,7 +26,7 @@ def train_epoch(d, epoch: int, batch_size, device, save=False):
 
         # print(f'recon.shape: {recon_batch.shape}')
 
-        loss = utils.kl_loss(recon_batch, data, mu, logvar)
+        loss = utilz.kl_loss(recon_batch, data, mu, logvar)
         loss.backward()
         idx = len(dataset) * epoch + batch_idx
         d['writer'].add_scalar('train_loss', loss.item(), global_step=idx)

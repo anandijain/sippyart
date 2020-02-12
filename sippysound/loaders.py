@@ -13,7 +13,7 @@ from torch.utils.data import Dataset, DataLoader
 
 from PIL import Image
 
-import utils
+import utilz
 
 """
 goal:
@@ -44,20 +44,22 @@ class WaveSet(Dataset):
         """
         seconds is int that is multiplied by sample rate 
         for using multiple songs at same time, im assuming same sr for rn
+        TODO: make bounds distribute to each wav file before cat
+            - use transforms?
 
         """
         # waves, srs = torchaudio.load(filepath=fn)
-        self.w, srs = utils.get_n(fns, cat=True)
+        self.w, srs = utilz.get_n(fns, cat=True)
         self.sample_rate = srs[0]
-        print(f'self.w shape: {self.w.shape}')
 
         if np.nan in self.w[0] or np.nan in self.w[1]:
             print('oh no, there are nans in this wav')
 
         self.wave_len = len(self.w[0])
-        print(f'self.wave_len: {self.wave_len}')
+
         start_idx = int(self.wave_len * start_pct)
         end_idx = int(self.wave_len * end_pct)
+
         l = self.w[0][start_idx:end_idx].view(1, -1)
         r = self.w[1][start_idx:end_idx].view(1, -1)
         self.w = torch.cat([l, r], dim=0)

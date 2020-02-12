@@ -6,6 +6,11 @@ import numpy as np
 import torchaudio
 from torch.nn import functional as F
 
+import sippysound
+
+PROJ_DIR = sippysound.__path__[0] + "/"
+PARENT_DIR = PROJ_DIR + "../"
+
 # TODO sync_n sample rates 
 
 def gen_recon(model, bottleneck: int, device):
