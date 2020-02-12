@@ -25,7 +25,7 @@ print(device)
 
 RUN_TIME = time.asctime()
 
-BATCH_SIZE = 224
+BATCH_SIZE = 56
 WINDOW_SECONDS = 2  # larger window sizes wont usually work on my GPU because of the RAM
 BOTTLENECK = 250
 
@@ -51,15 +51,7 @@ SAVE_RUN = False
 
 FILE_NAMES = [
     # place file names here
-    # '/home/sippycups/Music/2020/81 - 2 8 20.wav',
-    # '/home/sippycups/Music/2018/81 - 2018 - 90 6 5 18 2.wav',
-    # '/home/sippycups/Music/2018/81 - 2018 - 10 2 27 18.wav'
-    '/home/sippycups/Music/2018/81 - 2018 - 126 9 18 18.wav',
-    '/home/sippycups/Music/2018/81 - 2018 - 137 10 18 18.wav'
-    # '/home/sippycups/Music/2019/81 - 4 3 19.wav'
-    # '/home/sippycups/Music/misc/81 - misc - 18 9 13 17.wav'
-    # '/home/sippycups/Music/misc/81 - misc - 11 6 30 17 2.wav'
-
+    '/home/sippycups/Music/2019/81 - 2019 - 08 2 5 19.mp3'
 ]
 
 def train_vae(fns:list):

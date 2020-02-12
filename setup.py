@@ -19,6 +19,7 @@ setup(
         "torch",
         "torchaudio",
         "torchvision",
+        "tensorboard",
     ],  # external packages as dependencies
     python_requires=">=3.6",
 )
