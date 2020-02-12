@@ -41,8 +41,8 @@ LOG_INTERVAL = 1
 SHUFFLE = False
 
 MODEL_FN = f'{utilz.PARENT_DIR}models/n_2.pth'
-LOAD_MODEL = True
-SAVE_MODEL = True
+LOAD_MODEL = False
+SAVE_MODEL = False
 SAVE_SONG = True
 # LR = 1e-3
 LR = None
