@@ -28,3 +28,4 @@ vaegen.train([YOUR WAV FILE], epochs=5, save=True)
 * other generative models
 * preprocessing network to determine bpm and scale window size as a factor of beats/measures.
 * given list of files, create a playlist where the same model trains on all files and creates one wav
+* style classification

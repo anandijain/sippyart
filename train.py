@@ -17,14 +17,13 @@ def train_epoch(d, epoch: int, batch_size, device, save=False):
     train_loss = 0
     for batch_idx, data in enumerate(train_loader):
         data = data.to(device)
-        data = data.view(batch_size, 2, -1)
+        print(f'data.shape: {data.shape}')
         optimizer.zero_grad()
 
         recon_batch, mu, logvar = model(data)
         recon_batch = recon_batch.view(batch_size, 2, -1)
 
-        # print(f'data.shape: {data.shape}')
-        # print(f'recon.shape: {recon_batch.shape}')
+        print(f'recon.shape: {recon_batch.shape}')
 
         loss = utils.kl_loss(recon_batch, data, mu, logvar)
         loss.backward()

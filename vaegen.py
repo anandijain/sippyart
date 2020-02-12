@@ -24,13 +24,17 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 # device = torch.device("cpu")
 print(device)
 
-LOG_INTERVAL = 1
-BATCH_SIZE = 42
-WINDOW_SECONDS = 2
-BOTTLENECK = 200
+BATCH_SIZE = 1
+WINDOW_SECONDS = 1
+BOTTLENECK = 300
 EPOCHS = 100
 START_SAVING_AT = 50
+
+START_FRAC = 0
+END_FRAC = 0.20
+
 SAVE_FREQ = 1
+LOG_INTERVAL = 1
 SHUFFLE = False
 
 RUN_TIME = time.asctime()
@@ -40,7 +44,10 @@ MODEL_FN = 'n_2.pth'
 
 FILE_NAMES = [
     # place file names here
-    '/home/sippycups/Music/2020/81 - 2 8 20.wav'
+    # '/home/sippycups/Music/2020/81 - 2 8 20.wav'
+    # '/home/sippycups/Music/2019/81 - 4 3 19.wav'
+    # '/home/sippycups/Music/misc/81 - misc - 18 9 13 17.wav'
+    '/home/sippycups/Music/misc/81 - misc - 11 6 30 17 2.wav'
 
 ]
 LOAD_MODEL = False
@@ -80,7 +87,7 @@ def prep(fn: str, load_model=LOAD_MODEL):
     except FileExistsError:
         print(f'warning: going to overwrite {path}')
 
-    dataset = loaders.WaveSet(fn, seconds=WINDOW_SECONDS)
+    dataset = loaders.WaveSet(fn, seconds=WINDOW_SECONDS, start_pct=START_FRAC, end_pct=END_FRAC)
     print(f'len(dataset): {len(dataset)} (num of windows)')
     window_len = dataset.window_len
     sample_rate = dataset.sample_rate
@@ -88,15 +95,14 @@ def prep(fn: str, load_model=LOAD_MODEL):
     train_loader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=SHUFFLE)
 
     model = models.VAEConv1d(WINDOW_SECONDS*sample_rate*2, bottleneck=BOTTLENECK).to(device)
-    # model.load_state_dict(torch.load('n_2.pth'))
-    # model = models.VAE(dim=window_len*2, bottleneck=BOTTLENECK,
-    #                 middle=MIDDLE).to(device)
+
     if load_model:
         try:
             model.load_state_dict(torch.load(MODEL_FN))
             print(f'loaded: {MODEL_FN}')
         except FileNotFoundError:
             pass
+
     print(model)
     optimizer = optim.Adam(model.parameters())
     writer = SummaryWriter(

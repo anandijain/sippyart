@@ -63,7 +63,7 @@ class WaveSet(Dataset):
 
     def __getitem__(self, idx):
         x = wave_cat(self.w, idx, self.window_len)
-        # print(x)
+        print(f'x.shape{x.shape}')
         if np.nan in x:
             print('oh no')
         return x # x.view(1, -1)
@@ -116,8 +116,8 @@ class Videoset(Dataset):
 
 
 def wave_cat(w:torch.tensor, idx:int, n:int, dim=0):
-    l = w[0][idx*n:(idx + 1)*n]
-    r = w[1][idx*n:(idx + 1)*n]
+    l = w[0][idx*n:(idx + 1)*n].view(1, -1)
+    r = w[1][idx*n:(idx + 1)*n].view(1, -1)
     x = torch.cat([l, r], dim=dim)
     return x
 
