@@ -51,7 +51,6 @@ SAVE_RUN = False
 
 FILE_NAMES = [
     # place file names here
-    'fjaloo.wav'
 ]
 
 def train_vae(fns:list):
