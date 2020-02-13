@@ -3,6 +3,7 @@
 """
 import glob
 import os
+import random
 import time
 
 import torch
@@ -25,22 +26,22 @@ print(device)
 
 RUN_TIME = time.asctime()
 
-BATCH_SIZE = 139
-WINDOW_SECONDS = 1  # larger window sizes wont usually work on my GPU because of the RAM
+BATCH_SIZE = 1
+WINDOW_SECONDS = 2  # larger window sizes wont usually work on my GPU because of the RAM
 BOTTLENECK = 250
 
-# start_saving should be less than epochs 
+# start_saving should be less than epochs
 EPOCHS = 100
-START_SAVING_AT = 50
+START_SAVING_AT = 0
 
 START_FRAC = 0
 END_FRAC = 1
 
 SAVE_FREQ = 1
 LOG_INTERVAL = 1
-SHUFFLE = False
+SHUFFLE = True
 
-MODEL_FN = f'{utilz.PARENT_DIR}models/2n_2.pth'
+MODEL_FN = f'{utilz.PARENT_DIR}models/6n_2.pth'
 LOAD_MODEL = False
 SAVE_MODEL = True
 SAVE_SONG = True
@@ -51,25 +52,31 @@ SAVE_RUN = False
 USE_LOGGER = False
 
 FILE_NAMES = [
-    # place file names here
-    '/home/sippycups/Music/81 - intro to ableton/81 - intro to ableton - 88 bye 3.wav'
-    # '/home/sippycups/Music/misc/81 - misc - 25 mini 12-39 am.wav',
-    # # '/home/sippycups/Music/misc/81 - misc - 27 12 31 17.wav'
-    # '/home/sippycups/Music/2018/81 - 2018 - 07 part 2 not done.wav'
-]
 
-def train_vae(fns:list):
+]
+#glob.glob('/home/sippycups/Music/2019/**.wav')
+GEN_APPLY_FNS = [
+    
+] 
+#glob.glob('/home/sippycups/Music/2018/**.wav')
+
+
+def train_vae(fns: list):
     d = prep(fns)
     y_hats = []
+    applyset_len = len(d['applyset'])
 
     for epoch in range(1, EPOCHS + 1):
         print(f'epoch: {epoch}')
-        
+
         if epoch < START_SAVING_AT:
             train.train_epoch(d, epoch, BATCH_SIZE, device)
         else:
             train.train_epoch(d, epoch, BATCH_SIZE, device)
-            y_hat = utilz.gen_recon(d['m'], BOTTLENECK, device)
+            # y_hat = utilz.gen_recon(d['m'], BOTTLENECK, device)
+            apply_idx = random.randint(0, applyset_len)
+            sample = d['applyset'][apply_idx].view(BATCH_SIZE, 2, -1)
+            y_hat = utilz.gen_apply(d['m'], sample, device).cpu()
             y_hats.append(y_hat)
 
     song = torch.cat(y_hats, dim=1)
@@ -97,10 +104,13 @@ def prep(fns: list):
     dataset = loaders.WaveSet(
         fns, seconds=WINDOW_SECONDS, start_pct=START_FRAC, end_pct=END_FRAC)
 
+    apply_set = loaders.WaveSet(GEN_APPLY_FNS, seconds=WINDOW_SECONDS)
+
     print(f'len(dataset): {len(dataset)} (num of windows)')
     print(f'sample_rate：{dataset.sample_rate}')
     # bs = len(dataset)
-    train_loader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=SHUFFLE) ##### !!!
+    train_loader = DataLoader(
+        dataset, batch_size=BATCH_SIZE, shuffle=SHUFFLE)  # !!!
 
     model = models.VAEConv1d(WINDOW_SECONDS*dataset.sample_rate*2,
                              bottleneck=BOTTLENECK).to(device)
@@ -122,6 +132,7 @@ def prep(fns: list):
         'm': model,
         'o': optimizer,
         'data': dataset,
+        'applyset': apply_set,
         'loader': train_loader,
         'sr': dataset.sample_rate,
         'path': path,

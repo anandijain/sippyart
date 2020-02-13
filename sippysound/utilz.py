@@ -14,11 +14,17 @@ PARENT_DIR = PROJ_DIR + "../"
 # TODO sync_n sample rates 
 
 def gen_recon(model, bottleneck: int, device):
-    samples = []
     with torch.no_grad():
-        sample = torch.randn(1, bottleneck).to(device)
+        sample = torch.zeros(1, bottleneck).to(device)
         sample = model.decode(sample).cpu().view(2, -1)
     return sample
+
+
+def gen_apply(model, sample, device):
+    with torch.no_grad():
+        recon_batch, mu, logvar = model(sample.to(device))
+        recon_batch = recon_batch.view(2, -1)
+    return recon_batch
 
 
 def sync_sample_rates(fn: str, fn2: str):

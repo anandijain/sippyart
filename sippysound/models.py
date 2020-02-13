@@ -54,10 +54,10 @@ class VAEConv1d(nn.Module):
         # self.conv3 = nn.Conv1d(2, 2, self.dim//50, stride=2)
         # self.conv4 = nn.Conv1d(2, 2, self.dim//100, stride=4)
         # self.conv5 = nn.Conv1d(2, 2, self.dim//200, stride=4)
-        self.fc21 = nn.Linear(376, bottleneck)  # 498
-        self.fc22 = nn.Linear(376, bottleneck)
-        self.fc3 = nn.Linear(bottleneck, 376)
-        self.fc4 = nn.Linear(376, flat_len)
+        self.fc21 = nn.Linear(346, bottleneck)  # 498
+        self.fc22 = nn.Linear(346, bottleneck)
+        self.fc3 = nn.Linear(bottleneck, 346)
+        self.fc4 = nn.Linear(346, flat_len)
 
     def encode(self, x):
         x = F.relu(self.conv1(x))
