@@ -25,13 +25,13 @@ print(device)
 
 RUN_TIME = time.asctime()
 
-BATCH_SIZE = 56
-WINDOW_SECONDS = 2  # larger window sizes wont usually work on my GPU because of the RAM
+BATCH_SIZE = 139
+WINDOW_SECONDS = 1  # larger window sizes wont usually work on my GPU because of the RAM
 BOTTLENECK = 250
 
 # start_saving should be less than epochs 
-EPOCHS = 75
-START_SAVING_AT = 25
+EPOCHS = 100
+START_SAVING_AT = 50
 
 START_FRAC = 0
 END_FRAC = 1
@@ -40,17 +40,22 @@ SAVE_FREQ = 1
 LOG_INTERVAL = 1
 SHUFFLE = False
 
-MODEL_FN = f'{utilz.PARENT_DIR}models/n_2.pth'
+MODEL_FN = f'{utilz.PARENT_DIR}models/2n_2.pth'
 LOAD_MODEL = False
-SAVE_MODEL = False
+SAVE_MODEL = True
 SAVE_SONG = True
 # LR = 1e-3
 LR = None
 
 SAVE_RUN = False
+USE_LOGGER = False
 
 FILE_NAMES = [
     # place file names here
+    '/home/sippycups/Music/81 - intro to ableton/81 - intro to ableton - 88 bye 3.wav'
+    # '/home/sippycups/Music/misc/81 - misc - 25 mini 12-39 am.wav',
+    # # '/home/sippycups/Music/misc/81 - misc - 27 12 31 17.wav'
+    # '/home/sippycups/Music/2018/81 - 2018 - 07 part 2 not done.wav'
 ]
 
 def train_vae(fns:list):
@@ -108,10 +113,11 @@ def prep(fns: list):
         optimizer = optim.Adam(model.parameters())
     else:
         optimizer = optim.Adam(model.parameters(), lr=LR)
-
-    writer = SummaryWriter(
-        f"runs/{RUN_TIME}")
-
+    if USE_LOGGER:
+        writer = SummaryWriter(
+            f"runs/{RUN_TIME}")
+    else:
+        writer = None
     d = {
         'm': model,
         'o': optimizer,
