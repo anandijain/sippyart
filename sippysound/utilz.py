@@ -51,6 +51,22 @@ def get_n(fns:list, cat=True):
     return waves, srs
 
 
+def get_n_fix(fns):
+    waves = []
+    for fn in fns:
+        w, sr = torchaudio.load(fn)
+        w = mono_fix(w)
+        waves.append(w)
+    return torch.cat(waves, dim=1)
+
+
+def mono_fix(w):
+    if len(w) == 1:
+        return torch.cat([w, w])
+    else:
+        return w
+
+
 def get_two(fn, fn2):
     w, sr, w2, sr2 = sync_sample_rates(fn, fn2)
 

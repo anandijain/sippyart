@@ -31,7 +31,7 @@ WINDOW_SECONDS = 2  # larger window sizes wont usually work on my GPU because of
 BOTTLENECK = 250
 
 # start_saving should be less than epochs
-EPOCHS = 100
+EPOCHS = 25
 START_SAVING_AT = 0
 
 START_FRAC = 0
@@ -42,7 +42,7 @@ LOG_INTERVAL = 1
 SHUFFLE = True
 
 MODEL_FN = f'{utilz.PARENT_DIR}models/6n_2.pth'
-LOAD_MODEL = False
+LOAD_MODEL = True
 SAVE_MODEL = True
 SAVE_SONG = True
 # LR = 1e-3
@@ -51,14 +51,16 @@ LR = None
 SAVE_RUN = False
 USE_LOGGER = False
 
-FILE_NAMES = [
+USE_GEN_APPLY = False
 
+FILE_NAMES = [
+    # place train files here
 ]
-#glob.glob('/home/sippycups/Music/2019/**.wav')
+
+
 GEN_APPLY_FNS = [
-    
+    # test files here, used only if USE_GEN_APPLY is True
 ] 
-#glob.glob('/home/sippycups/Music/2018/**.wav')
 
 
 def train_vae(fns: list):
@@ -72,11 +74,14 @@ def train_vae(fns: list):
         if epoch < START_SAVING_AT:
             train.train_epoch(d, epoch, BATCH_SIZE, device)
         else:
-            train.train_epoch(d, epoch, BATCH_SIZE, device)
-            # y_hat = utilz.gen_recon(d['m'], BOTTLENECK, device)
-            apply_idx = random.randint(0, applyset_len)
-            sample = d['applyset'][apply_idx].view(BATCH_SIZE, 2, -1)
-            y_hat = utilz.gen_apply(d['m'], sample, device).cpu()
+            if USE_GEN_APPLY:
+                apply_idx = random.randint(0, applyset_len)
+                sample = d['applyset'][apply_idx].view(BATCH_SIZE, 2, -1)
+                y_hat = utilz.gen_apply(d['m'], sample, device).cpu()
+            else:
+                train.train_epoch(d, epoch, BATCH_SIZE, device)
+                y_hat = utilz.gen_recon(d['m'], BOTTLENECK, device)
+
             y_hats.append(y_hat)
 
     song = torch.cat(y_hats, dim=1)
@@ -95,9 +100,44 @@ def train_vae(fns: list):
     return song
 
 
-def prep(fns: list):
-    # short_fn = utilz.full_fn_to_name(fn)
 
+def test_vae(test_fns):
+    """
+    Used with a trained model, where MODEL_FN is already a saved .pth file
+
+
+    """
+    d = prep(test_fns)
+    y_hats = []
+    length = len(d['data'])
+
+    for epoch in range(1, EPOCHS + 1):
+        print(f'test epoch: {epoch}')
+
+        train.train_epoch(d, epoch, BATCH_SIZE, device)
+        apply_idx = random.randint(0, length)
+        sample = d['data'][apply_idx].view(BATCH_SIZE, 2, -1)
+        y_hat = utilz.gen_apply(d['m'], sample, device).cpu()
+        y_hats.append(y_hat)
+
+    song = torch.cat(y_hats, dim=1)
+    print(song)
+
+    if SAVE_SONG:
+        save_wavfn = f'vaeconv_{RUN_TIME}.wav'
+        song_path = d['path'] + save_wavfn
+        torchaudio.save(song_path, song, d['sr'])
+        print(f'audio saved to {song_path}')
+    
+    return song
+
+
+def prep(fns: list):
+    """
+    Prepares a dictionary containing the necesary items for training.
+
+    
+    """
     path = utilz.PARENT_DIR + 'samples/sound/'
     utilz.make_folder(path)
 
@@ -108,7 +148,7 @@ def prep(fns: list):
 
     print(f'len(dataset): {len(dataset)} (num of windows)')
     print(f'sample_rate：{dataset.sample_rate}')
-    # bs = len(dataset)
+
     train_loader = DataLoader(
         dataset, batch_size=BATCH_SIZE, shuffle=SHUFFLE)  # !!!
 
@@ -143,4 +183,3 @@ def prep(fns: list):
 
 if __name__ == "__main__":
     train_vae(FILE_NAMES)
-    # gen_folder()
