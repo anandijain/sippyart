@@ -46,7 +46,7 @@ class WaveSet(Dataset):
 
         """
         # waves, srs = torchaudio.load(filepath=fn)
-        self.w, srs = utilz.get_n_fix(fns, cat=True)
+        self.w, srs = utilz.get_n_fix(fns)
         self.sample_rate = srs[0]
 
         if np.nan in self.w[0] or np.nan in self.w[1]:
