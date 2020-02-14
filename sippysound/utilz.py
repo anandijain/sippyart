@@ -53,18 +53,21 @@ def get_n(fns:list, cat=True):
 
 def get_n_fix(fns):
     waves = []
+    srs = []
     for fn in fns:
         w, sr = torchaudio.load(fn)
         w = mono_fix(w)
+        srs.append(sr)
         waves.append(w)
-    return torch.cat(waves, dim=1)
+    return torch.cat(waves, dim=1), srs
 
 
 def mono_fix(w):
     if len(w) == 1:
-        return torch.cat([w, w])
-    else:
-        return w
+        w = torch.cat([w, w])
+        print(f'mono found, shape: {w.shape}')
+
+    return w
 
 
 def get_two(fn, fn2):
