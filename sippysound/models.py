@@ -90,22 +90,33 @@ class VAEConv1d(nn.Module):
 
 
 class VAEConv2d(nn.Module):
-    def __init__(self, dim=1660, middle=400, bottleneck=100):
+    def __init__(self, dim, middle, bottleneck):
         super(VAEConv2d, self).__init__()
         self.dim = dim
-        self.conv1 = nn.Conv2d(1, 1, 3, stride=2)
-        # self.conv2 = nn.Conv1d(1, 1, 3, stride=2)
-        self.fc1 = nn.Linear(dim//2 - 1, middle)
+
+        self.conv1 = nn.Conv2d(3, 4, 5, stride=1)
+        self.conv2 = nn.Conv2d(4, 8, 25, stride=1)
+        self.conv3 = nn.Conv2d(8, 8, 75, stride=1)
+        self.conv4 = nn.Conv2d(8, 8, 100, stride=1)
+        self.conv5 = nn.Conv2d(8, 8, 36, stride=1)
+
+        # self.fc1 = nn.Linear(1152, middle)
+
         self.fc21 = nn.Linear(middle, bottleneck)
         self.fc22 = nn.Linear(middle, bottleneck)
-        self.fc3 = nn.Linear(bottleneck, middle)
-        self.fc4 = nn.Linear(middle, dim)
+        # self.fc3 = nn.Linear(bottleneck, middle)
+        self.fc4 = nn.Linear(bottleneck, dim)
 
     def encode(self, x):
+
         x = F.relu(self.conv1(x))
-        # x = F.relu(self.conv2(x))
-        x = x.flatten()
-        h1 = F.relu(self.fc1(x))
+        x = F.relu(self.conv2(x))
+        x = F.relu(self.conv3(x))
+        x = F.relu(self.conv4(x))
+        x = F.relu(self.conv5(x))
+        h1 = x.flatten()
+        # h1 = F.relu(self.fc1(x))
+
         return self.fc21(h1), self.fc22(h1)
 
     def reparameterize(self, mu, logvar):
@@ -114,8 +125,8 @@ class VAEConv2d(nn.Module):
         return mu + eps*std
 
     def decode(self, z):
-        h3 = F.relu(self.fc3(z))
-        return torch.sigmoid(self.fc4(h3))
+        # h3 = F.relu(self.fc3(z))
+        return torch.sigmoid(self.fc4(z))
 
     def forward(self, x):
         mu, logvar = self.encode(x)

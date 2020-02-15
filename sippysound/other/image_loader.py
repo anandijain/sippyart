@@ -13,18 +13,23 @@ class Images(Dataset):
         """
         self.root_dir = root_dir
         self.fns = glob.glob(self.root_dir + '/**.jpg')
-        self.length = len(self.fns)
         self.transform = transforms
-
+        self.imgs = get_imgs(self.fns)
+        self.length = len(self.imgs)
+        
     def __len__(self):
         return self.length
 
     def __getitem__(self, idx):
-        fn = self.fns[idx]
+        return self.imgs[idx]
+
+
+def get_imgs(fns, transform=None):
+    imgs = []
+    for fn in fns:
         image = np.array(Image.open(fn), dtype=np.uint8)
         sample = torch.from_numpy(image)
-
-        if self.transform:
-            sample = self.transform(sample)
-
-        return sample
+        if transform:
+            sample = transform(sample)
+        imgs.append(sample)
+    return imgs

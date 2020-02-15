@@ -114,6 +114,8 @@ def kl_loss(recon_x, x, mu, logvar):
     except RuntimeError:
         print(f'recon: {np.unique(recon_x.cpu().detach().numpy())}')
         print(f'x: {np.unique(x.cpu().detach().numpy())}')
+        print('recon prob has nan')
+        return
 
     KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
     return BCE + KLD
