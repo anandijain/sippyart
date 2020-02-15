@@ -20,9 +20,9 @@ from glob import glob
 
 import numpy as np
 
-import loaders
-import models
-import utils
+import image_loader
+from sippysound import models
+from sippysound import utilz
 
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -43,7 +43,7 @@ edits = transforms.Compose([
     transforms.ToTensor()])
 
 def prep():
-    images = loaders.Images(
+    images = image_loader.Images(
         '/home/sippycups/audio/data/images', transforms=edits)
     data = images[0]
     dataloader = DataLoader(images, shuffle=True, batch_size=BATCH_SIZE)
@@ -79,7 +79,7 @@ def train(d):
             d['optimizer'].zero_grad()
 
             recon_batch, mu, logvar = d['model'](data)
-            loss = utils.kl_loss(recon_batch, data, mu, logvar)
+            loss = utilz.kl_loss(recon_batch, data, mu, logvar)
             loss.backward()
 
             idx = len(d['set']) * epoch + i
