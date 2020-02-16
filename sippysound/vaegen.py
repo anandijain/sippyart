@@ -8,6 +8,7 @@ import time
 
 import torch
 import torchaudio
+import torchvision
 
 from torch import nn, optim
 from torch.nn import functional as F
@@ -31,7 +32,7 @@ WINDOW_SECONDS = 2  # larger window sizes wont usually work on my GPU because of
 BOTTLENECK = 250
 
 # start_saving should be less than epochs
-EPOCHS = 25
+EPOCHS = 2
 START_SAVING_AT = 0
 
 START_FRAC = 0
@@ -44,7 +45,10 @@ SHUFFLE = True
 MODEL_FN = f'{utilz.PARENT_DIR}models/6n_2.pth'
 LOAD_MODEL = True
 SAVE_MODEL = True
+
 SAVE_SONG = True
+SAVE_VIDEO = True
+
 # LR = 1e-3
 LR = None
 
@@ -55,11 +59,13 @@ USE_GEN_APPLY = False
 
 FILE_NAMES = [
     # place train files here
+    '/home/sippycups/Music/2020/81 - 2 8 20.wav'
 ]
 
 
 GEN_APPLY_FNS = [
     # test files here, used only if USE_GEN_APPLY is True
+    '/home/sippycups/Music/2020/81 - 2 8 20.wav'
 ] 
 
 
@@ -110,7 +116,7 @@ def test_vae(test_fns):
     d = prep(test_fns)
     y_hats = []
     length = len(d['data'])
-
+    img_y_hats = []
     for epoch in range(1, EPOCHS + 1):
         print(f'test epoch: {epoch}')
 
@@ -118,6 +124,11 @@ def test_vae(test_fns):
         apply_idx = random.randint(0, length)
         sample = d['data'][apply_idx].view(BATCH_SIZE, 2, -1)
         y_hat = utilz.gen_apply(d['m'], sample, device).cpu()
+        print(f'y_hat.shape: {y_hat.shape}')
+
+        img_vers = y_hat.view(1, 3, 240, 245) # for 2 seconds
+        img_y_hats.append(img_vers)
+
         y_hats.append(y_hat)
 
     song = torch.cat(y_hats, dim=1)
@@ -129,7 +140,15 @@ def test_vae(test_fns):
         torchaudio.save(song_path, song, d['sr'])
         print(f'audio saved to {song_path}')
     
-    return song
+    # if SAVE_VIDEO:
+
+    #     video_path = f'{utilz.PARENT_DIR}samples/videos/vaegen{RUN_TIME}.mp4'
+    #     video = torch.cat(img_y_hats, dim=0).view(-1,
+    #                                               240, 245, 3) * 255
+    #     print(f'video shape: {video.shape} {video}')
+    #     torchvision.io.write_video(video_path, video, 60)
+
+    return song# , video
 
 
 def prep(fns: list):
@@ -182,4 +201,5 @@ def prep(fns: list):
 
 
 if __name__ == "__main__":
-    train_vae(FILE_NAMES)
+    # train_vae(FILE_NAMES)
+    test_vae(FILE_NAMES)

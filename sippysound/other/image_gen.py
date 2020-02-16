@@ -27,7 +27,7 @@ from sippysound import utilz
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 # device = torch.device("cpu")
-
+MODEL_FN = f'{utilz.PARENT_DIR}models/conv2d.pth'
 DATA_PATH = 'data/images'
 
 TIME = time.asctime()
@@ -35,17 +35,17 @@ TIME = time.asctime()
 HEIGHT, WIDTH = 256, 256
 CHANNELS = 3
 
-MIDDLE = 3200
-BOTTLENECK = 300
+MIDDLE = 288
+BOTTLENECK = 288
 
 EPOCHS = 500
 BATCH_SIZE = 1
 
-# LR = 1e-4
+# LR = 1e-2
 LR = None
 
 SAVE_MODEL = True
-LOAD_MODEL = False
+LOAD_MODEL = True
 
 USE_LOGGER = False
 
@@ -55,8 +55,11 @@ edits = transforms.Compose([
     transforms.ToTensor()])
 
 def prep():
+
+    images_path = f'{utilz.PARENT_DIR}data/images/'
+    print(images_path)
     images = image_loader.Images(
-        '/home/sippycups/audio/data/images', transforms=edits)
+        images_path, transforms=edits)
         
     data = images[0]
     dataloader = DataLoader(images, shuffle=True, batch_size=BATCH_SIZE)
@@ -68,9 +71,13 @@ def prep():
             f"runs/image_gen_test_MID_{MIDDLE}_BOTTLE_{BOTTLENECK}_{TIME}")
     else:
         writer = None
+    
     model = models.VAEConv2d(dim, middle=MIDDLE, bottleneck=BOTTLENECK).to(device)
-
     print(model)
+
+    if LOAD_MODEL:
+        model = utilz.load_model(model, MODEL_FN)
+
     if LR is not None:
         optimizer = optim.Adam(model.parameters(), lr=LR)
     else:
@@ -86,7 +93,7 @@ def prep():
         'model': model,
         'optimizer': optimizer,
         'set': images,
-        'model_fn': f'{utilz.PARENT_DIR}models/conv2d.pth'
+        'model_fn': MODEL_FN
     }
     return d
 
@@ -97,7 +104,8 @@ def train(d):
         for i, data in enumerate(d['dataloader']):
             data = data.float().to(device) / 255
             d['optimizer'].zero_grad()
-
+            # print(f'data shape : {data.shape}')
+            data = data.view(BATCH_SIZE, CHANNELS, HEIGHT, WIDTH)
             recon_batch, mu, logvar = d['model'](data)
             recon_batch = recon_batch.view(BATCH_SIZE, CHANNELS, HEIGHT, WIDTH)
             loss = utilz.kl_loss(recon_batch, data, mu, logvar)
@@ -110,7 +118,7 @@ def train(d):
             
             
             if i % 500 == 0:
-                print(f'{idx}: {loss}')
+                print(f'{epoch} {idx}: {loss}')
             #     print(
             #         f'recon: {np.unique(recon_batch.cpu().detach().numpy())}')
             #     print(f'x: {np.unique(data.cpu().detach().numpy())}')
@@ -126,10 +134,13 @@ def train(d):
 
     video = torch.cat(samples).view(-1, HEIGHT, WIDTH, CHANNELS) * 255
     print(f'video.shape: {video.shape}')
-    torchvision.io.write_video(f'{utilz.PARENT_DIR}samples/videos/tv_test2.mp4', video, 60)
+
+    video_path = f'{utilz.PARENT_DIR}samples/videos/{TIME}.mp4'
+    torchvision.io.write_video(video_path, video, 60)
+
     torch.save(d["model"].state_dict(), d['model_fn'])
 
 if __name__ == "__main__":
     d = prep()
-    print(d)
+    # print(d)
     train(d)

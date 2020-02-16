@@ -5,6 +5,8 @@ from torch.utils.data import Dataset
 
 from PIL import Image
 
+from sippysound import utilz
+
 class Images(Dataset):
 
     def __init__(self, root_dir, transforms=None):
@@ -12,9 +14,10 @@ class Images(Dataset):
 
         """
         self.root_dir = root_dir
-        self.fns = glob.glob(self.root_dir + '/**.jpg')
+        self.fns = glob.glob(self.root_dir + '**.jpg')
+        print(f'fns: {self.fns}')
         self.transform = transforms
-        self.imgs = get_imgs(self.fns)
+        self.imgs = get_imgs(self.fns, transform=self.transform)
         self.length = len(self.imgs)
         
     def __len__(self):

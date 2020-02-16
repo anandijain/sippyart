@@ -97,8 +97,9 @@ class VAEConv2d(nn.Module):
         self.conv1 = nn.Conv2d(3, 4, 5, stride=1)
         self.conv2 = nn.Conv2d(4, 8, 25, stride=1)
         self.conv3 = nn.Conv2d(8, 8, 75, stride=1)
-        self.conv4 = nn.Conv2d(8, 8, 100, stride=1)
-        self.conv5 = nn.Conv2d(8, 8, 36, stride=1)
+        self.conv4 = nn.Conv2d(8, 8, 75, stride=1)
+        self.conv5 = nn.Conv2d(8, 16, 75, stride=1)
+        # self.conv5 = nn.Conv2d(8, 8, 36, stride=1)
 
         # self.fc1 = nn.Linear(1152, middle)
 
@@ -114,6 +115,7 @@ class VAEConv2d(nn.Module):
         x = F.relu(self.conv3(x))
         x = F.relu(self.conv4(x))
         x = F.relu(self.conv5(x))
+        print(f'post conv {x.shape}')
         h1 = x.flatten()
         # h1 = F.relu(self.fc1(x))
 
