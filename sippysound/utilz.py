@@ -13,6 +13,20 @@ PARENT_DIR = PROJ_DIR + "../"
 
 # TODO sync_n sample rates 
 
+
+def pct_crop(w: torch.tensor, start_pct: float, end_pct: float) -> torch.tensor:
+    wave_len = len(w[0])
+    
+    start_idx = int(wave_len * start_pct)
+    end_idx = int(wave_len * end_pct)
+    cropped_channels = []
+
+    for channel in w:
+        cropped_channels.append(channel[start_idx:end_idx].view(1, -1))
+        
+    return torch.cat(cropped_channels, dim=0)
+
+
 def gen_recon(model, bottleneck: int, device):
     with torch.no_grad():
         sample = torch.zeros(1, bottleneck).to(device)
@@ -60,6 +74,25 @@ def get_n_fix(fns):
         srs.append(sr)
         waves.append(w)
     return torch.cat(waves, dim=1), srs
+
+
+def wave_cat(w: torch.tensor, idx: int, n: int, dim=0):
+    l = w[0][idx*n:(idx + 1)*n].view(1, -1)
+    r = w[1][idx*n:(idx + 1)*n].view(1, -1)
+    x = torch.cat([l, r], dim=dim)
+    return x
+
+
+def data_windows(w: torch.tensor, n: int = 1000):
+    # assuming stereo channels, w.shape == (2, n)
+    windows = []
+    length = len(w[0]) // n
+    for i in range(length):
+        l = w[0][i*n:(i+1)*n].view(1, -1)
+        r = w[1][i*n:(i+1)*n].view(1, -1)
+        elt = torch.cat([l, r])
+        windows.append(elt)
+    return windows
 
 
 def mono_fix(w):

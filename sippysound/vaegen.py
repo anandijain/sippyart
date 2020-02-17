@@ -27,23 +27,25 @@ print(device)
 
 RUN_TIME = time.asctime()
 
-BATCH_SIZE = 1
+BATCH_SIZE = 47
 WINDOW_SECONDS = 2  # larger window sizes wont usually work on my GPU because of the RAM
-BOTTLENECK = 250
+BOTTLENECK = 300
+
+# 3, 10 10 
 
 # start_saving should be less than epochs
-EPOCHS = 2
+EPOCHS = 50
 START_SAVING_AT = 0
 
-START_FRAC = 0
-END_FRAC = 1
+START_FRAC = 0.25
+END_FRAC = .5
 
 SAVE_FREQ = 1
 LOG_INTERVAL = 1
 SHUFFLE = True
 
-MODEL_FN = f'{utilz.PARENT_DIR}models/6n_2.pth'
-LOAD_MODEL = True
+MODEL_FN = f'{utilz.PARENT_DIR}models/9n_2.pth'
+LOAD_MODEL = False
 SAVE_MODEL = True
 
 SAVE_SONG = True
@@ -59,7 +61,7 @@ USE_GEN_APPLY = False
 
 FILE_NAMES = [
     # place train files here
-    '/home/sippycups/Music/2020/81 - 2 8 20.wav'
+    '/home/sippycups/audio/data/sound/entropy.wav'
 ]
 
 
@@ -73,25 +75,27 @@ def train_vae(fns: list):
     d = prep(fns)
     y_hats = []
     applyset_len = len(d['applyset'])
-
+    all_zs = []
     for epoch in range(1, EPOCHS + 1):
         print(f'epoch: {epoch}')
 
         if epoch < START_SAVING_AT:
             train.train_epoch(d, epoch, BATCH_SIZE, device)
         else:
+            all_zs.append(train.train_epoch(d, epoch, BATCH_SIZE, device))
+
             if USE_GEN_APPLY:
                 apply_idx = random.randint(0, applyset_len)
                 sample = d['applyset'][apply_idx].view(BATCH_SIZE, 2, -1)
                 y_hat = utilz.gen_apply(d['m'], sample, device).cpu()
             else:
-                train.train_epoch(d, epoch, BATCH_SIZE, device)
                 y_hat = utilz.gen_recon(d['m'], BOTTLENECK, device)
 
             y_hats.append(y_hat)
-
+    video = torch.cat(all_zs, dim=0)
     song = torch.cat(y_hats, dim=1)
-    print(song)
+    print(f'song: {song}')
+    print(f'video.shape: {video.shape}')
 
     if SAVE_SONG:
         save_wavfn = f'vaeconv_{RUN_TIME}.wav'
@@ -102,6 +106,13 @@ def train_vae(fns: list):
     if SAVE_MODEL:
         torch.save(d["m"].state_dict(), MODEL_FN)
         print(f'model saved to {MODEL_FN}')
+
+    if SAVE_VIDEO:
+        video_path = f'{utilz.PARENT_DIR}samples/videos/vaegen{RUN_TIME}.mp4'
+        print(f'video shape: {video.shape}')
+        video = video.view(-1, 10, 10, 3)
+        torchvision.io.write_video(video_path, video, 60)
+        print(f'audio saved to {video_path}')
 
     return song
 
@@ -139,14 +150,7 @@ def test_vae(test_fns):
         song_path = d['path'] + save_wavfn
         torchaudio.save(song_path, song, d['sr'])
         print(f'audio saved to {song_path}')
-    
-    # if SAVE_VIDEO:
 
-    #     video_path = f'{utilz.PARENT_DIR}samples/videos/vaegen{RUN_TIME}.mp4'
-    #     video = torch.cat(img_y_hats, dim=0).view(-1,
-    #                                               240, 245, 3) * 255
-    #     print(f'video shape: {video.shape} {video}')
-    #     torchvision.io.write_video(video_path, video, 60)
 
     return song# , video
 
@@ -201,5 +205,5 @@ def prep(fns: list):
 
 
 if __name__ == "__main__":
-    # train_vae(FILE_NAMES)
-    test_vae(FILE_NAMES)
+    train_vae(FILE_NAMES)
+    # test_vae(FILE_NAMES)

@@ -31,3 +31,7 @@ vaegen.train([YOUR WAV FILE], epochs=5, save=True)
 * style classification
 * neural tuner
 * key classification
+* use nlp model to describe music
+* change dataloaders for different subset selections (window striding)
+* option to have (len - window_len) # of windows, or (len // window_len)
+* organize todo list
