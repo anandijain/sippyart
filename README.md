@@ -23,15 +23,17 @@ vaegen.train([YOUR WAV FILE], epochs=5, save=True)
 
 ## [listen](https://anonstandardunitofmeasurement.bandcamp.com/album/vae)
 
-## todo
+## real todo/more feasible
 
-* other generative models
-* preprocessing network to determine bpm and scale window size as a factor of beats/measures.
-* given list of files, create a playlist where the same model trains on all files and creates one wav
-* style classification
-* neural tuner
-* key classification
-* use nlp model to describe music
 * change dataloaders for different subset selections (window striding)
 * option to have (len - window_len) # of windows, or (len // window_len)
-* organize todo list
+* given list of files, create a playlist where the same model trains on all files and creates one wav
+* fix gan
+
+## ideas/misc
+
+* preprocessing network to determine bpm and scale window size as a factor of beats/measures.
+* style classification
+* key classification
+* neural tuner
+* use nlp model to describe music
