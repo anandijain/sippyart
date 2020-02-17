@@ -27,25 +27,25 @@ print(device)
 
 RUN_TIME = time.asctime()
 
-BATCH_SIZE = 47
-WINDOW_SECONDS = 2  # larger window sizes wont usually work on my GPU because of the RAM
+BATCH_SIZE = 1
+WINDOW_SECONDS = 1  # larger window sizes wont usually work on my GPU because of the RAM
 BOTTLENECK = 300
 
 # 3, 10 10 
 
 # start_saving should be less than epochs
-EPOCHS = 50
+EPOCHS = 25
 START_SAVING_AT = 0
 
-START_FRAC = 0.25
-END_FRAC = .5
+START_FRAC = 0
+END_FRAC = .30
 
 SAVE_FREQ = 1
 LOG_INTERVAL = 1
 SHUFFLE = True
 
-MODEL_FN = f'{utilz.PARENT_DIR}models/9n_2.pth'
-LOAD_MODEL = False
+MODEL_FN = f'{utilz.PARENT_DIR}models/10n_2.pth'
+LOAD_MODEL = True
 SAVE_MODEL = True
 
 SAVE_SONG = True
@@ -57,17 +57,19 @@ LR = None
 SAVE_RUN = False
 USE_LOGGER = False
 
-USE_GEN_APPLY = False
+USE_GEN_APPLY = True
 
 FILE_NAMES = [
     # place train files here
-    '/home/sippycups/audio/data/sound/entropy.wav'
+    '/home/sippycups/audio/data/sound/sentimental.wav',
+    # '/home/sippycups/audio/data/sound/ascenseur.wav',
+
 ]
 
 
 GEN_APPLY_FNS = [
     # test files here, used only if USE_GEN_APPLY is True
-    '/home/sippycups/Music/2020/81 - 2 8 20.wav'
+    '/home/sippycups/audio/data/sound/ascenseur.wav',
 ] 
 
 
