@@ -1,29 +1,35 @@
 using WAV, Flux
 using IterTools: ncycle
+using Plots
+
 fn = "/home/sippycups/Music/2020/81 - 3 14 20 2.wav"
 testfn = "/home/sippycups/Music/2020/81 - 3 14 20.wav"
-n = 2000
-epochs = 10
+n = 2205
+epochs = 3 
 bs = 128
+sr = 44100
 
 function window(fn::String)
     w = wavread(fn)[1]
-    c = w[:, 1]
-    len = size(w)[1] - (2n + 1)
+    c = w[1:20*sr, 1]
+    len = size(c)[1] - (2n + 1)
     m = div(len, n)
     idxs = 1:2n:m*n
     xs = hcat([vec(c[i:i+n-1]) for i in idxs]...)
     ys = hcat([vec(c[i+n:i+2n-1]) for i in idxs]...)
-
-    return Flux.Data.DataLoader(xs, ys; batchsize=bs, shuffle=false)
+    return xs, ys
 end
 
-d = window(fn)
-td = window(testfn)
+d = Flux.Data.DataLoader(window(fn)...; batchsize=bs, shuffle=false)
+td = Flux.Data.DataLoader(window(testfn)...; batchsize=bs, shuffle=false)
 
-m = Chain(LSTM(n, 100), LSTM(100, 100), LSTM(100, n))
+m = Chain(LSTM(n, 500),
+#  LSTM(200, 200),
+LSTM(500, n))
 
 function lxss(x, y)
+    @assert size(x) == (n, bs)
+    @assert size(y) == (n, bs)
     l = sum(Flux.mse.(m(x), y))
     Flux.reset!(m)
     return l
@@ -31,16 +37,7 @@ end
 
 ps = params(m)
 opt = ADAM()
-m(d.data[1][2])
-# lxss(d.data[1], d.data[2])
-# lxss(td.data[1][2], td.data[2][2])
-function getfirst()
-    for (x, y) in d
-        return x, y
-    end
-end
-x, y = getfirst()
-lxss(x, y)
+
 
 train_pred = Vector()
 test_pred = Vector()
@@ -48,18 +45,16 @@ train_losses = Vector()
 test_losses = Vector()
 cb = function ()  
     for (x, y) in td
-        println("x: ", size(x))
-        println("y: ", size(y))
         Flux.reset!(m)
-        @assert size(x) == (2000, bs)
-        @assert size(y) == (2000, bs)
+        @assert size(x) == (n, bs)
+        @assert size(y) == (n, bs)
         test_ŷ = m(x)
 
         Flux.reset!(m)
         test_loss = lxss(x, y)
-        println(test_loss)
+        println("test_loss:", test_loss)
         Flux.reset!(m)
-
+        
         push!(test_pred, test_ŷ)
         push!(test_losses, test_loss)
         break
@@ -69,7 +64,7 @@ cb = function ()
         ŷ = m(x[1])
         Flux.reset!(m)
         train_loss = lxss(x, y)
-        println(train_loss)
+        println("train_loss:", train_loss)
         Flux.reset!(m)
 
         push!(train_pred, ŷ)
@@ -79,8 +74,17 @@ cb = function ()
 end
 for e in 1:epochs
     println("new epoch: ", e)
-    Flux.train!(lxss, ps, d, opt, cb=cb)
+    Flux.train!(lxss, ps, td, opt, cb=cb)
 end
 
 to_write = vcat(train_pred...)
-wavwrite(to_write, "test_out.wav", Fs=44100)
+tw = reshape(to_write, 1, :)
+size(tw)[2] / sr # seconds
+
+tw = tw[9*div(length(tw), 10):end]
+test_write = vcat(test_pred...)
+testw = reshape(test_write, 1, :)
+testw = testw[div(length(testw), 2):end]
+wavwrite(tw, "train_out6.wav", Fs=sr)
+wavwrite(testw, "test_out6.wav", Fs=sr)
+ 
