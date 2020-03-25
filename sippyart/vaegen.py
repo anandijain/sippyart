@@ -57,13 +57,13 @@ LR = None
 SAVE_RUN = False
 USE_LOGGER = False
 
-USE_GEN_APPLY = True
+USE_GEN_APPLY = False
 
 FILE_NAMES = [
     # place train files here
-    '/home/sippycups/audio/data/sound/sentimental.wav',
+    # '/home/sippycups/audio/data/sound/sentimental.wav',
     # '/home/sippycups/audio/data/sound/ascenseur.wav',
-
+    '/home/sippycups/sippyart/data/sound/entropy.wav'
 ]
 
 
