@@ -45,13 +45,13 @@ class WaveSet(Dataset):
             - use transforms?
 
         """
-        # waves, srs = torchaudio.load(filepath=fn)
-        self.w, srs = utilz.get_n_fix(fns)
-        self.sample_rate = srs[0]
+        self.w, srs = torchaudio.load(filepath=fns[0])
+        # self.w, srs = utilz.get_n_fix(fns)
+        self.sample_rate = srs
 
-        if len(set(srs)) != 1:
-            print('a sample rate problem will prob happen')
-            print('files have different sample rates')
+        # if len(set(srs)) != 1:
+        #     print('a sample rate problem will prob happen')
+        #     print('files have different sample rates')
 
         if np.nan in self.w[0] or np.nan in self.w[1]:
             print('oh no, there are nans in this wav')

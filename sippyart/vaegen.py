@@ -69,14 +69,14 @@ FILE_NAMES = [
 
 GEN_APPLY_FNS = [
     # test files here, used only if USE_GEN_APPLY is True
-    '/home/sippycups/audio/data/sound/ascenseur.wav',
 ] 
 
 
 def train_vae(fns: list):
     d = prep(fns)
     y_hats = []
-    applyset_len = len(d['applyset'])
+    if USE_GEN_APPLY:
+        applyset_len = len(d['applyset'])
     all_zs = []
     for epoch in range(1, EPOCHS + 1):
         print(f'epoch: {epoch}')
@@ -169,7 +169,10 @@ def prep(fns: list):
     dataset = loaders.WaveSet(
         fns, seconds=WINDOW_SECONDS, start_pct=START_FRAC, end_pct=END_FRAC)
 
-    apply_set = loaders.WaveSet(GEN_APPLY_FNS, seconds=WINDOW_SECONDS)
+    if USE_GEN_APPLY:
+        apply_set = loaders.WaveSet(GEN_APPLY_FNS, seconds=WINDOW_SECONDS)
+    else: 
+        apply_set = None
 
     print(f'len(dataset): {len(dataset)} (num of windows)')
     print(f'sample_rate：{dataset.sample_rate}')
