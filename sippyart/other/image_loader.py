@@ -5,7 +5,7 @@ from torch.utils.data import Dataset
 
 from PIL import Image
 
-from sippysound import utilz
+from sippyart import utilz
 
 class Images(Dataset):
 

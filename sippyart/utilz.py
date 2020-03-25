@@ -6,9 +6,9 @@ import numpy as np
 import torchaudio
 from torch.nn import functional as F
 
-import sippysound
+import sippyart
 
-PROJ_DIR = sippysound.__path__[0] + "/"
+PROJ_DIR = sippyart.__path__[0] + "/"
 PARENT_DIR = PROJ_DIR + "../"
 
 # TODO sync_n sample rates 

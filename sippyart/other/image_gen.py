@@ -21,8 +21,8 @@ from glob import glob
 import numpy as np
 
 import image_loader
-from sippysound import models
-from sippysound import utilz
+from sippyart import models
+from sippyart import utilz
 
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")

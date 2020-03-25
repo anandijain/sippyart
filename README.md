@@ -8,11 +8,13 @@
     - vaegen.py: given a wav file, trains a vae to reproduce the song for given lengths
     - gan.py: (not working really) trying to generate raw audio signal
 
-## gen usage
+## vaegen usage
 
     1. first clone repo
-    2. move wav file into learning/audio/
-    3. train vae on your audio sample by changing FILE_NAMES in `vaegen.py` to your file
+    2. `cd sippyart/`
+    3. `pip3 install -e . --user`
+    4. change FILE_NAMES in `vaegen.py` to full path to a wav file
+    5. in terminal, `python3 vaegen.py`
 
 ## real todo/more feasible
 

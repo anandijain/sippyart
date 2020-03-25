@@ -1,7 +1,7 @@
 import torch
 import torchaudio
 
-from sippysound import utilz
+from sippyart import utilz
 
 
 def train_epoch(d, epoch: int, batch_size, device, save=False):

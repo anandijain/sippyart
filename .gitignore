@@ -15,7 +15,7 @@
 .vscode/
 .ipynb_checkpoints/
 __pycache__/
-sippysound.egg-info/
+sippyart.egg-info/
 
 data/
 runs/

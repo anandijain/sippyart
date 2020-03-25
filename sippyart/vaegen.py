@@ -16,10 +16,10 @@ from torch.nn import functional as F
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 
-from sippysound import utilz
-from sippysound import models
-from sippysound import loaders
-from sippysound import train
+from sippyart import utilz
+from sippyart import models
+from sippyart import loaders
+from sippyart import train
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 # device = torch.device("cpu")
