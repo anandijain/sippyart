@@ -1,5 +1,5 @@
-using WAV, Images
-using Base.Iterators, Random
+using WAV, Images, VideoIO
+using Base.Iterators, Random, StatsBase
 
 
 # attempt at non trash code lol
@@ -41,6 +41,8 @@ function all_colors()
 	arr
 end
 
+imgs_from_signal(s) = map(x->reshape(hcat(x...), 30, 49), collect(frames(map(x->d[x], s), fs, 60))[1:end-1])
 
 # todo: use AxisArrays for the times
 # write sound and images into mp4
+# save imgs, seems like FileIO was being a little jank. 
